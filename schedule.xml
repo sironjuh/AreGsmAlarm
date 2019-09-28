@@ -1,0 +1,111 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE schedule SYSTEM "schedule.dtd">
+<schedule version="1.0">
+    <timetable>
+        <name>Huolto (Arki 7:00 - 15:30)</name>
+        <id>0</id>
+        <day name="monday" value="2">
+            <on value="">07:00</on>
+            <off value="">15:30</off>
+        </day>
+        <day name="tuesday" value="3">
+            <on value="">07:00</on>
+            <off value="">15:30</off>
+        </day>
+        <day name="wednesday" value="4">
+            <on value="">07:00</on>
+            <off value="">15:30</off>
+        </day>
+        <day name="thursday" value="5">
+            <on value="">07:00</on>
+            <off value="">15:30</off>
+        </day>
+        <day name="friday" value="6">
+            <on value="">07:00</on>
+            <off value="">15:30</off>
+        </day>
+        <day name="saturday" value="7">
+            <on value=""></on>
+            <off value=""></off>
+        </day>
+        <day name="sunday" value="1">
+            <on value=""></on>
+            <off value=""></off>
+        </day>
+    </timetable>
+    <timetable>
+        <name>Valvomo (24h)</name>
+        <id>1</id>
+        <day name="monday" value="2">
+            <on value="">0:00</on>
+            <off value="">23:59</off>
+        </day>
+        <day name="tuesday" value="3">
+            <on value="">0:00</on>
+            <off value="">23:59</off>
+        </day>
+        <day name="wednesday" value="4">
+            <on value="">0:00</on>
+            <off value="">23:59</off>
+        </day>
+        <day name="thursday" value="5">
+            <on value="">0:00</on>
+            <off value="">23:59</off>
+        </day>
+        <day name="friday" value="6">
+            <on value="">0:00</on>
+            <off value="">23:59</off>
+        </day>
+        <day name="saturday" value="7">
+            <on value="">0:00</on>
+            <off value="">23:59</off>
+        </day>
+        <day name="sunday" value="1">
+            <on value="">0:00</on>
+            <off value="">23:59</off>
+        </day>
+    </timetable>
+    <timetable>
+        <name>Päivystys (Arki 15:30-7:00 &amp; Viikonloppu)</name>
+        <id>2</id>
+        <day name="monday" value="2">
+            <on value="">0:00</on>
+            <off value="">7:00</off>
+            <on value="">15:30</on>
+            <off value="">23:59</off>
+        </day>
+        <day name="tuesday" value="3">
+            <on value="">0:00</on>
+            <off value="">7:00</off>
+            <on value="">15:30</on>
+            <off value="">23:59</off>
+        </day>
+        <day name="wednesday" value="4">
+            <on value="">0:00</on>
+            <off value="">7:00</off>
+            <on value="">15:30</on>
+            <off value="">23:59</off>
+        </day>
+        <day name="thursday" value="5">
+            <on value="">0:00</on>
+            <off value="">7:00</off>
+            <on value="">15:30</on>
+            <off value="">23:59</off>
+        </day>
+        <day name="friday" value="6">
+            <on value="">0:00</on>
+            <off value="">7:00</off>
+            <on value="">15:30</on>
+            <off value="">23:59</off>
+        </day>
+        <day name="saturday" value="7">
+            <on value="">0:00</on>
+            <off value="">23:59</off>
+        </day>
+        <day name="sunday" value="1">
+            <on value="">0:00</on>
+            <off value="">23:59</off>
+        </day>
+    </timetable>
+</schedule>
+

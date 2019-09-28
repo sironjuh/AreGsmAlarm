@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!DOCTYPE userList SYSTEM "userlist.dtd">
+<userList version="1.0">
+    <user>
+        <name>Are</name>
+        <phoneNumber>+358403001234</phoneNumber>
+        <scheduleId>1</scheduleId>
+        <id>Postiosoite 1</id>
+        <alarmClass>
+            <alarmId>1</alarmId>
+            <alarmId>2</alarmId>
+            <alarmId>3</alarmId>
+        </alarmClass>
+        <state value="true"/>
+    </user>
+    <user>
+        <name>Huoltomies</name>
+        <phoneNumber>+358403001234</phoneNumber>
+        <scheduleId>0</scheduleId>
+        <id>Postiosoite 1</id>
+        <alarmClass>
+            <alarmId>1</alarmId>
+        </alarmClass>
+        <state value="true"/>
+    </user>
+    <user>
+        <name>Päivystäjä</name>
+        <phoneNumber>+358403001234</phoneNumber>
+        <scheduleId>2</scheduleId>
+        <id>Postiosoite 1</id>
+        <alarmClass>
+            <alarmId>1</alarmId>
+        </alarmClass>
+        <state value="true"/>
+    </user>
+    <user>
+        <name>Jamppa Mallinen</name>
+        <phoneNumber>+358403001234</phoneNumber>
+        <scheduleId>1</scheduleId>
+        <id>Postiosoite 1</id>
+        <alarmClass>
+            <alarmId>1</alarmId>
+            <alarmId>2</alarmId>
+            <alarmId>3</alarmId>
+        </alarmClass>
+        <state value="true"/>
+    </user>
+</userList>

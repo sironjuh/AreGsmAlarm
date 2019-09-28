@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+        <!ELEMENT schedule (timetable*)>
+        <!ATTLIST schedule
+                version CDATA #REQUIRED
+                >
+        <!ELEMENT timetable (name, id, day*)>
+        <!ELEMENT name (#PCDATA)>
+        <!ELEMENT id (#PCDATA)>
+        <!ELEMENT day (on, off)*>
+        <!ATTLIST day
+                name CDATA #REQUIRED
+                value CDATA #REQUIRED
+                >
+        <!ELEMENT on (#PCDATA)>
+        <!ELEMENT off (#PCDATA)>
+        <!ATTLIST on value CDATA #REQUIRED>
+        <!ATTLIST off value CDATA #REQUIRED>
