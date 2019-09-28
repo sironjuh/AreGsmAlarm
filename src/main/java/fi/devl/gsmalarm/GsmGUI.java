@@ -81,7 +81,7 @@ import fi.devl.gsmalarm.servers.AlarmServerThread;
 import fi.devl.gsmalarm.servers.ComServerThread;
 
 public class GsmGUI extends JFrame implements ActionListener, TableModelListener, WindowListener {
-    final static Logger log = Logger.getLogger(GsmGUI.class);
+    private final static Logger log = Logger.getLogger(GsmGUI.class);
 
     // first page datafields
     private JTextField alarmsField;
@@ -98,16 +98,10 @@ public class GsmGUI extends JFrame implements ActionListener, TableModelListener
     // buttons (tab 2)
     public JButton userEdit;
     public JButton scheduleEdit;
-    public JButton messageCentral;
+    private JButton messageCentral;
     public JButton comCentral;
 
-    // configuration frames
-    private JFrame userEditor;
-    private JFrame scheduleEditor;
-    private JFrame comEditor;
-
-    // booleans
-    private boolean alarmsEnabled = false;
+    private boolean alarmsEnabled;
 
     private ImageIcon hyvin;
     private ImageIcon ok;
@@ -115,20 +109,12 @@ public class GsmGUI extends JFrame implements ActionListener, TableModelListener
     private ImageIcon ok_roll;
     private ImageIcon seis_roll;
 
-    // tables
     private JTable table;
     private TableModelEvent tableEvent = null;
 
-    //table data
-    private String[] columnNames = {"Nimi",
-            "Puhelinnumero",
-            "Aikataulu",
-            "Kohdetunnus",
-            "Aktiivinen"};
+    private String[] columnNames = {"Nimi", "Puhelinnumero", "Aikataulu", "Kohdetunnus", "Aktiivinen"};
+    private Object[][] data;
 
-    private Object[][] data = new Object[0][0];
-
-    // threads
     private AlarmServerThread alarmServer;
     private ComServerThread comServer;
     private ExecutorService executorService;
@@ -145,39 +131,26 @@ public class GsmGUI extends JFrame implements ActionListener, TableModelListener
         int height = 480;
         setSize(width, height);
         setTitle("Are Gsm Alarm v1.0");
+
         setDefaultCloseOperation(WindowConstants.DO_NOTHING_ON_CLOSE);
         addWindowListener(this);
         this.setResizable(false);
 
-        this.comPorts = new ArrayList<String>();
-        this.ttList = new ArrayList<TimeTable>();
-        this.userList = new ArrayList<User>();
-        //this.vkList = new ArrayList<Viestikeskus>();
-
-        // luodaan pohjille aikaohjelma, korvataan myöhemmin
-        // käyttäjän mahdollisuduella tehd�ämuutoksia, tallentaa ja ladata
-        // muutokset tiedostoihin
-		/*
-		this.ttList.add(new TimeTable("Huolto (7:00-15:30)"));
-		this.ttList.add(new TimeTable("P�ivystys (15:30-7:00)"));
-		this.ttList.add(new TimeTable("Valvomo (24h)"));
-		*/
+        this.comPorts = new ArrayList<>();
+        this.ttList = new ArrayList<>();
+        this.userList = new ArrayList<>();
 
         this.fileIO = new FileIO();
 
         try {
-            this.ttList = this.fileIO.readTimeTable(this.ttList);
-        } catch (ParserConfigurationException problem1) {
-            problem1.printStackTrace();
-        } catch (SAXException problem1) {
-            problem1.printStackTrace();
-        } catch (IOException problem1) {
-            problem1.printStackTrace();
+            this.ttList = this.fileIO.readTimeTable();
+        } catch (ParserConfigurationException | IOException | SAXException e) {
+            e.printStackTrace();
         }
 
         try {
             this.userList = this.fileIO.readUserList(this.userList, this.ttList);
-            System.out.println("userlist size: " + this.userList.size());
+            log.info("userlist size: " + this.userList.size());
         } catch (ParserConfigurationException problem) {
             JOptionPane.showMessageDialog(this, "Ongelma alustuksessa!\n\nTietoja ei pysty tallentamaan.\n"
                     + "Käytetään oletustietoja.", "Varoitus!", JOptionPane.WARNING_MESSAGE);
@@ -228,13 +201,13 @@ public class GsmGUI extends JFrame implements ActionListener, TableModelListener
         this.startTimeField = new JTextField(new Date().toString(), 30);
         this.startTimeField.setBackground(Color.getHSBColor(0.0f, 0.0f, 0.95f));
         this.startTimeField.setEditable(false);
+
         this.alarmsField = new JTextField("0", 30);
         this.alarmsField.setBackground(Color.getHSBColor(0.0f, 0.0f, 0.95f));
         this.alarmsField.setEditable(false);
 
         this.ok = this.createImageIcon("images/ok.png");
         this.seis = this.createImageIcon("images/seis.png");
-
         this.ok_roll = this.createImageIcon("images/ok_roll.png");
         this.seis_roll = this.createImageIcon("images/seis_roll.png");
 
@@ -246,15 +219,11 @@ public class GsmGUI extends JFrame implements ActionListener, TableModelListener
 
         this.changeStateButton.setIcon(this.ok);
         this.changeStateButton.setActionCommand("changeState");
-
-        // actionListenerit ekalle sivulle
         this.changeStateButton.addActionListener(this);
 
-        // asetetaan oletuksena jatkohälytykset ok
         this.alarmsEnabled = true;
 
         // asetussivun pohjustus
-        //JTable table = new JTable(this.data, this.columnNames);
         this.table = new JTable(new UserTableModel());
         this.table.getModel().addTableModelListener(this);
         this.table.setAutoCreateRowSorter(true);
@@ -330,12 +299,6 @@ public class GsmGUI extends JFrame implements ActionListener, TableModelListener
     private void initComServer() {
         try {
             this.comServer = new ComServerThread();
-        } catch (IOException problem) {
-            JOptionPane.showMessageDialog(this, "RXTX-ei käynnisty!\n\nVarmista että ohjelma on\n"
-                    + "oikein asennettu.", "Varoitus!", JOptionPane.WARNING_MESSAGE);
-            System.exit(-1);
-        }
-        try {
             this.comPorts = this.comServer.listPorts();
             if (this.comPorts.size() > 0) {
                 this.comServer.connect(this.comPorts.get(0));
@@ -400,36 +363,6 @@ public class GsmGUI extends JFrame implements ActionListener, TableModelListener
         c.weighty = 0.2;
         c.insets = new Insets(2, 2, 2, 2);
         panel.add(new JLabel(" "), c);
-        //panel.add(kohdeHolder, c);
-
-		/*
-		c.gridx = 1;
-		c.gridy = 2;
-		c.gridwidth = 2;
-		c.gridheight = 1;
-		c.weightx = 0.0;
-		c.weighty = 0.0;
-		c.insets = new Insets(2, 2, 20, 2);
-		panel.add(osoite, c);
-
-		c.gridx = 0;
-		c.gridy = 2;
-		c.gridwidth = 1;
-		c.gridheight = 1;
-		c.weightx = 1.0;
-		c.weighty = 0.0;
-		c.insets = new Insets(2, 2, 2, 2);
-		panel.add(new JLabel(" "), c);
-
-		c.gridx = 5;
-		c.gridy = 2;
-		c.gridwidth = 1;
-		c.gridheight = 1;
-		c.weightx = 1.0;
-		c.weighty = 0.0;
-		c.insets = new Insets(2, 2, 2, 2);
-		panel.add(new JLabel(" "), c);
-		*/
 
         c.gridx = 1;
         c.gridy = 2;
@@ -494,35 +427,6 @@ public class GsmGUI extends JFrame implements ActionListener, TableModelListener
         c.insets = new Insets(2, 2, 2, 2);
         panel.add(new JLabel(" "), c);
 
-		/*
-		c.gridx = 1;
-		c.gridy = 7;
-		c.gridwidth = 1;
-		c.gridheight = 1;
-		c.weightx = 1.0;
-		c.weighty = 0.0;
-		c.insets = new Insets(2, 2, 2, 2);
-		panel.add(this.enableAlarms, c);
-
-		c.gridx = 1;
-		c.gridy = 8;
-		c.gridwidth = 1;
-		c.gridheight = 1;
-		c.weightx = 1.0;
-		c.weighty = 0.0;
-		panel.add(this.disableAlarms, c);
-
-
-		c.gridx = 2;
-		c.gridy = 6;
-		c.gridwidth = 1;
-		c.gridheight = 4;
-		c.weightx = 0.0;
-		c.weighty = 0.0;
-		c.insets = new Insets(2, 50, 2, 50);
-		panel.add(this.statusLabel, c);
-		*/
-
         c.gridx = 0;
         c.gridy = 6;
         c.gridwidth = 4;
@@ -547,7 +451,6 @@ public class GsmGUI extends JFrame implements ActionListener, TableModelListener
         c.fill = GridBagConstraints.BOTH;
         c.insets = new Insets(2, 2, 2, 2);
 
-        // taulukko (paneeli 2)
         c.gridx = 0;
         c.gridy = 0;
         c.gridwidth = 4;
@@ -572,7 +475,6 @@ public class GsmGUI extends JFrame implements ActionListener, TableModelListener
         c.weighty = 1.0;
         panel.add(new JLabel(" "), c);
 
-        // napit (paneeli 2)
         c.gridx = 0;
         c.gridy = 8;
         c.gridwidth = 1;
@@ -612,7 +514,7 @@ public class GsmGUI extends JFrame implements ActionListener, TableModelListener
         return panel;
     }
 
-    protected JComponent makeAboutPanel(String text) {
+    private JComponent makeAboutPanel(String text) {
         JPanel panel = new JPanel(false);
         JScrollPane scrollpane = new JScrollPane(panel);
         scrollpane.setBackground(Color.white);
@@ -716,25 +618,6 @@ public class GsmGUI extends JFrame implements ActionListener, TableModelListener
     }
 
     public void actionPerformed(ActionEvent e) {
-        //enableAlarms
-		/*
-        if (e.getActionCommand().equals("enableAlarms")) {
-            this.enableAlarms.setEnabled(false);
-            this.disableAlarms.setEnabled(true);
-            this.statusLabel.setIcon(this.ok);
-            this.alarmsEnabled = true;
-        }
-        
-		//disableAlarms
-        if (e.getActionCommand().equals("disableAlarms")) {
-            this.enableAlarms.setEnabled(true);
-            this.disableAlarms.setEnabled(false);
-            this.statusLabel.setIcon(this.seis);
-            this.alarmsEnabled = false;
-        }     
-        */
-
-        // Disable / Enable alarms
         if (e.getActionCommand().equals("changeState")) {
             if (this.alarmsEnabled) {
                 this.changeStateButton.setIcon(this.seis);
@@ -750,29 +633,25 @@ public class GsmGUI extends JFrame implements ActionListener, TableModelListener
 
         }
 
-        // User Editor
         if (e.getActionCommand().equals("userEdit")) {
             this.userEdit.setEnabled(false);
-            this.userEditor = new UserEditor("Käyttäjät", this.userList, this.ttList, this);
-            this.userEditor.setVisible(true);
+            JFrame userEditor = new UserEditor("Käyttäjät", this.userList, this.ttList, this);
+            userEditor.setVisible(true);
         }
 
-        // Schedule Editor
         if (e.getActionCommand().equals("scheduleEdit")) {
             this.scheduleEdit.setEnabled(false);
-            this.scheduleEditor = new ScheduleEditor("Aikaohjelma", this.userList, this.ttList, this);
-            this.scheduleEditor.setVisible(true);
+            JFrame scheduleEditor = new ScheduleEditor("Aikaohjelma", this.userList, this.ttList, this);
+            scheduleEditor.setVisible(true);
         }
 
-        // Message Central
         if (e.getActionCommand().equals("messageCentral")) {
             this.updatePanel1();
         }
 
-        //comCentral
         if (e.getActionCommand().equals("comCentral")) {
             this.comCentral.setEnabled(false);
-            this.comEditor = new ComEditor("Yhteysasetukset", this.comPorts, this.comServer, this);
+            JFrame comEditor = new ComEditor("Yhteysasetukset", this.comPorts, this.comServer, this);
             //this.comEditor.setVisible(true);
         }
     }
@@ -781,17 +660,14 @@ public class GsmGUI extends JFrame implements ActionListener, TableModelListener
         if (this.alarmsEnabled) {
             for (int i = 0; i < this.userList.size(); i++) {
                 if (this.userList.get(i).getState() && this.userList.get(i).getTimeTable().isActive()) {
-                    //System.out.println(this.userList.get(i).getName());
-                    //System.out.println("id from alarmserver: " +id);
+                    log.info(this.userList.get(i).getName());
+                    log.info("id from alarmserver: " + id);
 
                     if (this.userList.get(i).almIdMatch(id)) {
-                        //System.out.println("alarmId: " + id);
                         try {
                             this.comServer.sendAlarm(this.userList.get(i).getNumber(), this.userList.get(i).getId(), data);
-                        } catch (IOException problem) {
-                            problem.printStackTrace();
-                        } catch (InterruptedException problem) {
-                            problem.printStackTrace();
+                        } catch (InterruptedException e) {
+                            e.printStackTrace();
                         }
                     }
                 }
@@ -807,7 +683,7 @@ public class GsmGUI extends JFrame implements ActionListener, TableModelListener
     public void tableChanged(TableModelEvent e) {
         int row = e.getFirstRow();
         int column = e.getColumn();
-        boolean oldValue = false;
+        boolean oldValue;
 
         if (column == 4) {
             oldValue = this.userList.get(row).getState();
@@ -915,13 +791,12 @@ public class GsmGUI extends JFrame implements ActionListener, TableModelListener
             int numCols = getColumnCount();
 
             for (int i = 0; i < numRows; i++) {
-                System.out.print("    row " + i + ":");
+                log.debug("    row " + i + ":");
                 for (int j = 0; j < numCols; j++) {
-                    System.out.print("  " + data[i][j]);
+                    log.debug("  " + data[i][j]);
                 }
-                System.out.println();
             }
-            System.out.println("--------------------------");
+            log.debug("--------------------------");
         }
     }
 
@@ -933,7 +808,7 @@ public class GsmGUI extends JFrame implements ActionListener, TableModelListener
                 "Varoitus!",
                 JOptionPane.YES_NO_OPTION,
                 JOptionPane.QUESTION_MESSAGE,
-                null,        //do not use a custom Icon
+                null,   //do not use a custom Icon
                 options,     //the titles of buttons
                 options[0]); //default button title
 

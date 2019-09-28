@@ -42,6 +42,7 @@ import javax.xml.transform.stream.StreamResult;
 import fi.devl.gsmalarm.domain.DaySchedule;
 import fi.devl.gsmalarm.domain.TimeTable;
 import fi.devl.gsmalarm.domain.User;
+import org.apache.log4j.Logger;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.NodeList;
@@ -55,18 +56,20 @@ public class FileIO {
 
     private static final String ver = "1.0";
 
+    private final static Logger log = Logger.getLogger(FileIO.class);
+
     FileIO() {
     }
 
     /**
      * reads timetabledata from xml-file
      *
-     * @param ttList list of TimeTabble objects
      * @throws ParserConfigurationException fail
      * @throws IOException fail
      * @throws SAXException fail
      */
-    ArrayList<TimeTable> readTimeTable(ArrayList<TimeTable> ttList) throws ParserConfigurationException, SAXException, IOException {
+    ArrayList<TimeTable> readTimeTable() throws ParserConfigurationException, SAXException, IOException {
+        ArrayList<TimeTable> ttList = new ArrayList<>();
         Element root;
         NodeList list;
 
@@ -85,7 +88,7 @@ public class FileIO {
                     TimeTable t = getTimeTable(el);
                     ttList.add(t);
                 }
-                System.out.println("schedule.xml: " + list.getLength());
+                log.info("schedule.xml: " + list.getLength());
             }
         }
         return ttList;
@@ -119,7 +122,7 @@ public class FileIO {
                     User u = getUser(el, ttList);
                     userList.add(u);
                 }
-                System.out.println("userList.xml: " + list.getLength());
+                log.info("userList.xml: " + list.getLength());
             }
         }
         return userList;
@@ -140,11 +143,11 @@ public class FileIO {
 
         TimeTable sched = null;
 
-        System.out.println("scheduleId found on userlist: " + scheduleId);
+        log.info("scheduleId found on userlist: " + scheduleId);
 
         for (TimeTable timeTable : ttList) {
             if (scheduleId.equals(timeTable.getId())) {
-                System.out.println("scheduleId found on schedulelist: " + timeTable.getId());
+                log.info("scheduleId found on schedulelist: " + timeTable.getId());
                 sched = timeTable;
             }
         }
@@ -152,14 +155,14 @@ public class FileIO {
         User u = new User(name, phone, sched, id, state);
         almIds = userEl.getElementsByTagName("alarmId");
 
-        System.out.println("list size: " + almIds.getLength());
+        log.info("list size: " + almIds.getLength());
 
         if (almIds != null && almIds.getLength() > 0) {
             for (int i = 0; i < almIds.getLength(); i++) {
                 Element el = (Element) almIds.item(i);
                 almId = el.getFirstChild().getNodeValue();
                 u.addAlmId(almId);
-                System.out.println("user: " + u.getName() + " almId: " + almId);
+                log.info("user: " + u.getName() + " almId: " + almId);
             }
         }
 
@@ -188,7 +191,7 @@ public class FileIO {
                 DaySchedule t = getDaySchedule(el);
                 sched.addDaySchedule(t);
             }
-            System.out.println("Day schedules found: " + dslist.getLength());
+            log.info("Day schedules found: " + dslist.getLength());
         }
 
         return sched;
@@ -216,7 +219,7 @@ public class FileIO {
         onlist = dsEl.getElementsByTagName("on");
         offlist = dsEl.getElementsByTagName("off");
 
-        System.out.println("Day schedule " + name + " begins.");
+        log.info("Day schedule " + name + " begins.");
 
         if (onlist != null && onlist.getLength() > 0) {
             for (int i = 0; i < onlist.getLength(); i++) {
@@ -229,12 +232,12 @@ public class FileIO {
                     el = (Element) offlist.item(i);
                     if (el.getFirstChild() != null) {
                         offTime = el.getFirstChild().getNodeValue();
-                        System.out.println("ontime: " + onTime + " offtime: " + offTime);
+                        log.info("ontime: " + onTime + " offtime: " + offTime);
                         ds.addSchedule(onTime, offTime, "1");
                     }
                 }
             }
-            System.out.println(name + " schedules found: " + onlist.getLength());
+            log.info(name + " schedules found: " + onlist.getLength());
         }
 
         return ds;
@@ -286,7 +289,7 @@ public class FileIO {
             DocumentBuilder db = dbf.newDocumentBuilder();
             this.userDoc = db.newDocument();
         } catch (ParserConfigurationException pce) {
-            System.out.println("Error while trying to instantiate DocumentBuilder " + pce);
+            log.error("Error while trying to instantiate DocumentBuilder " + pce);
             System.exit(1);
         }
 

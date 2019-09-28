@@ -443,12 +443,12 @@ public class UserEditor extends JFrame implements ActionListener, WindowListener
                 }
 
                 n = JOptionPane.showOptionDialog(this,
-                        "Halutako poistaa k�ytt�j�n " + this.userList.get(selectedUser).getName()
+                        "Halutako poistaa käyttäjän " + this.userList.get(selectedUser).getName()
                                 + " tiedot?",
                         "Varoitus!",
                         JOptionPane.YES_NO_OPTION,
                         JOptionPane.QUESTION_MESSAGE,
-                        null,        //do not use a custom Icon
+                        null,   //do not use a custom Icon
                         options,     //the titles of buttons
                         options[0]); //default button title
 

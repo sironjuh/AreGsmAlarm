@@ -21,12 +21,13 @@
 
 package fi.devl.gsmalarm.domain;
 
-import fi.devl.gsmalarm.domain.DaySchedule;
+import org.apache.log4j.Logger;
 
 import java.util.ArrayList;
 import java.util.Calendar;
 
 public class TimeTable {
+    final static Logger log = Logger.getLogger(TimeTable.class);
 
     private String name;
     private String id;
@@ -35,17 +36,10 @@ public class TimeTable {
 
     String DATE_FORMAT_NOW = "HH:mm:ss dd-MM-yyyy";
 
-    public TimeTable(String name) {
-        this.name = name;
-        this.id = null;
-        this.daysched = new ArrayList<DaySchedule>();
-        this.active = false;
-    }
-
     public TimeTable(String name, String id) {
         this.name = name;
         this.id = id;
-        this.daysched = new ArrayList<DaySchedule>();
+        this.daysched = new ArrayList<>();
         this.active = false;
     }
 
@@ -61,7 +55,7 @@ public class TimeTable {
         return this.id;
     }
 
-    public void sedId(String newId) {
+    public void setId(String newId) {
         this.id = newId;
     }
 
@@ -76,9 +70,9 @@ public class TimeTable {
     public DaySchedule getDaySchedule(String day) {
         DaySchedule daysch = null;
 
-        for (int i = 0; i < this.daysched.size(); i++) {
-            if (this.daysched.get(i).getName().equals(day))
-                daysch = this.daysched.get(i);
+        for (DaySchedule daySchedule : this.daysched) {
+            if (daySchedule.getName().equals(day))
+                daysch = daySchedule;
         }
 
         return daysch;
@@ -88,9 +82,9 @@ public class TimeTable {
         DaySchedule daysch = null;
 
         if (this.daysched != null) {
-            for (int i = 0; i < this.daysched.size(); i++) {
-                if (this.daysched.get(i).getDay() == day)
-                    daysch = this.daysched.get(i);
+            for (DaySchedule daySchedule : this.daysched) {
+                if (daySchedule.getDay() == day)
+                    daysch = daySchedule;
             }
         }
         return daysch;
@@ -111,15 +105,14 @@ public class TimeTable {
         int minute = cal.get(Calendar.MINUTE);
         int day = cal.get(Calendar.DAY_OF_WEEK);
 
-        //System.out.println(hour + ":" + minute + " Viikonp�iv�: " + day);
-        //System.out.println(sdf.format(cal.getTime()));
+        log.debug(hour + ":" + minute + " Viikonpäivä: " + day);
 
         this.active = false;
 
-        for (int i = 0; i < this.daysched.size(); i++) {
-            if (this.daysched.get(i).getDay() == day) {
-                //System.out.println("p�iv� t�sm��");
-                this.active = this.daysched.get(i).isActive(hour, minute);
+        for (DaySchedule daySchedule : this.daysched) {
+            if (daySchedule.getDay() == day) {
+                log.debug("päivä " + day);
+                this.active = daySchedule.isActive(hour, minute);
             }
         }
 

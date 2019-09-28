@@ -69,8 +69,11 @@ import fi.devl.gsmalarm.GsmGUI;
 import fi.devl.gsmalarm.domain.TimeTable;
 import fi.devl.gsmalarm.domain.User;
 import fi.devl.gsmalarm.domain.DaySchedule;
+import org.apache.log4j.Logger;
 
 public class ScheduleEditor extends JFrame implements ActionListener, WindowListener, MouseListener {
+    final static Logger log = Logger.getLogger(ScheduleEditor.class);
+
     private int selectedSchedule = 0;
     private int selectedDaySchedule = 0;
     private int selectedDay = 2;
@@ -520,7 +523,7 @@ public class ScheduleEditor extends JFrame implements ActionListener, WindowList
         if (e.getActionCommand().equals("scheduleSelect")) {
             JComboBox cb = (JComboBox) e.getSource();
             this.selectedSchedule = cb.getSelectedIndex();
-            System.out.println("[scheduleSelect action]");
+            log.debug("[scheduleSelect action]");
             this.paivaValikko.setSelectedIndex(0);
             this.updateFieldData();
             this.repaint();
@@ -530,7 +533,7 @@ public class ScheduleEditor extends JFrame implements ActionListener, WindowList
             JComboBox cb = (JComboBox) e.getSource();
             this.selectedDay = cb.getSelectedIndex() + 2;
 
-            System.out.println("[daySelect action]");
+            log.debug("[daySelect action]");
 
             if (this.selectedDay == 8)
                 this.selectedDay = 1;
@@ -544,8 +547,7 @@ public class ScheduleEditor extends JFrame implements ActionListener, WindowList
         if (e.getActionCommand().equals("daySchedSelect")) {
             JComboBox cb = (JComboBox) e.getSource();
             this.selectedDaySchedule = cb.getSelectedIndex();
-            System.out.println("[daySchedSelect action]");
-            System.out.println("Selected dayschedule: " + this.selectedDaySchedule);
+            log.debug("daySchedSelect " + this.selectedDaySchedule);
             this.updateDaySchedData();
         }
 
@@ -564,7 +566,7 @@ public class ScheduleEditor extends JFrame implements ActionListener, WindowList
             this.aikaValikko.addItem("Aikataulu #" + this.ttList.size());
             this.aikaValikko.setSelectedIndex(this.ttList.size() - 1);
             this.selectedSchedule = this.aikaValikko.getSelectedIndex();
-            //this.selectedDay = 2; //monday
+
             this.paivaValikko.setSelectedIndex(0);
             this.updateFieldData();
         }
@@ -575,12 +577,11 @@ public class ScheduleEditor extends JFrame implements ActionListener, WindowList
             int daynum = 0;
 
             this.ds = this.ttList.get(this.selectedSchedule).getDaySchedule(this.selectedDay);
-            //System.out.println("Päivässä " + this.ds.getName() + " on " + this.ds.numberOfSchedules() + "päiväohjelmaa");
 
             if (this.ds != null) {
                 this.ttList.get(this.selectedSchedule).getDaySchedule(this.selectedDay).addSchedule("0:00", "1:00", "1");
             } else {
-                System.out.println("Valittu päivä: " + this.selectedDay);
+                log.debug("Valittu päivä: " + this.selectedDay);
                 switch (this.selectedDay) {
                     case 1:
                         day = "sunday";
@@ -617,7 +618,7 @@ public class ScheduleEditor extends JFrame implements ActionListener, WindowList
                 newSched.setDay(daynum);
 
                 this.ttList.get(this.selectedSchedule).addDaySchedule(newSched);
-                System.out.println("Lisätään ohjelmaan: " + this.ttList.get(this.selectedSchedule).getName()
+                log.debug("Lisätään ohjelmaan: " + this.ttList.get(this.selectedSchedule).getName()
                         + " uusi päiväohjelma päivälle " + day);
             }
 
@@ -671,13 +672,12 @@ public class ScheduleEditor extends JFrame implements ActionListener, WindowList
 
         if (e.getActionCommand().equals("remove")) {
             Object[] options = {"Kyllä", "Ei"};
-
             // TODO
         }
     }
 
     private void updateFieldData() {
-        System.out.println("[updateFieldData]");
+        log.debug("[updateFieldData]");
         if (this.ttList.size() > 0 && this.selectedSchedule < this.ttList.size() && this.selectedSchedule >= 0) {
             this.aikaKentta.setText(this.ttList.get(this.selectedSchedule).getName());
             this.aikaKentta.setEditable(true);
@@ -695,8 +695,8 @@ public class ScheduleEditor extends JFrame implements ActionListener, WindowList
         this.ds = this.ttList.get(this.selectedSchedule).getDaySchedule(this.selectedDay);
 
         if (this.ds != null) {
-            System.out.println("[updateDaySchedData]");
-            System.out.println("Number of schedules in " + this.ds.getName() + ": " + this.ds.numberOfSchedules());
+            log.debug("[updateDaySchedData]");
+            log.debug("Number of schedules in " + this.ds.getName() + ": " + this.ds.numberOfSchedules());
 
             count = this.ohjelmaValikko.getItemCount();
 
@@ -740,7 +740,7 @@ public class ScheduleEditor extends JFrame implements ActionListener, WindowList
                 this.spinnerAlku.setValue(this.alkuAika.getTime());
                 this.spinnerLoppu.setValue(this.loppuAika.getTime());
 
-                System.out.println("Ei päiväohjelmia");
+                log.debug("Ei päiväohjelmia");
                 this.ohjelmaValikko.removeAllItems();
                 this.selectedDaySchedule = -1;
             }
@@ -755,48 +755,47 @@ public class ScheduleEditor extends JFrame implements ActionListener, WindowList
             this.spinnerAlku.setValue(this.alkuAika.getTime());
             this.spinnerLoppu.setValue(this.loppuAika.getTime());
 
-            System.out.println("Ei päiväohjelmia (ds = null)");
+            log.debug("Ei päiväohjelmia (ds = null)");
             this.ohjelmaValikko.removeAllItems();
             this.selectedDaySchedule = -1;
         }
     }
 
-    public void windowActivated(WindowEvent _) {
+    public void windowActivated(WindowEvent e) {
         this.repaint();
     }
 
-    public void windowClosed(WindowEvent arg0) {
+    public void windowClosed(WindowEvent e) {
     }
 
-    public void windowClosing(WindowEvent arg0) {
+    public void windowClosing(WindowEvent e) {
         this.gui.scheduleEdit.setEnabled(true);
         this.setVisible(false);
         this.dispose();
     }
 
-    public void windowDeactivated(WindowEvent arg0) {
+    public void windowDeactivated(WindowEvent e) {
     }
 
-    public void windowDeiconified(WindowEvent arg0) {
+    public void windowDeiconified(WindowEvent e) {
     }
 
-    public void windowIconified(WindowEvent arg0) {
+    public void windowIconified(WindowEvent e) {
     }
 
-    public void windowOpened(WindowEvent arg0) {
+    public void windowOpened(WindowEvent e) {
     }
 
     public void paint(Graphics g) {
         int scheds = 0;
-        int i, j, num = 0, count = 0;
+        int num = 0;
         int starth, endh, startm, endm, day;
         double width;
 
         ArrayList<DaySchedule> dsList = null;
-        DaySchedule ds = null;
+        DaySchedule ds;
 
         Color c, s;
-        RoundRectangle2D[] rect = null;
 
         super.paint(g);
 
@@ -804,12 +803,14 @@ public class ScheduleEditor extends JFrame implements ActionListener, WindowList
         g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING,
                 RenderingHints.VALUE_ANTIALIAS_ON);
 
-        System.out.println("Aikapaneelin y: " + this.timePanel.getY());
+        log.debug("Aikapaneelin y: " + this.timePanel.getY());
 
         double y = this.logoPanel.getHeight() + this.timePanel.getY() + this.timeTable.getRowHeight() + 43.0;
         double x = this.clockTable.getWidth() + 3.0;
 
         width = ((this.timeTable.getWidth() / 7.0));
+
+        RoundRectangle2D[] rect = null;
 
         if (this.ttList.size() > 0) {
             dsList = this.ttList.get(this.selectedSchedule).getDaySchedules();
@@ -817,17 +818,17 @@ public class ScheduleEditor extends JFrame implements ActionListener, WindowList
             if (dsList != null) {
                 num = dsList.size();
 
-                for (i = 0; i < num; i++) {
+                for (int i = 0; i < num; i++) {
                     scheds = scheds + dsList.get(i).numberOfSchedules();
                 }
-                System.out.println("Total scheds for: " + this.ttList.get(this.selectedSchedule).getName() + " is: " + scheds);
+                log.debug("Total scheds for: " + this.ttList.get(this.selectedSchedule).getName() + " is: " + scheds);
                 rect = new RoundRectangle2D[scheds];
             }
         }
 
         if (scheds > 0) {
-            count = 0;
-            for (i = 0; i < num; i++) {
+            int count = 0;
+            for (int i = 0; i < num; i++) {
                 ds = dsList.get(i);
                 day = ds.getDay();
 
@@ -836,7 +837,7 @@ public class ScheduleEditor extends JFrame implements ActionListener, WindowList
                 else
                     day = day - 2;
 
-                for (j = 0; j < dsList.get(i).numberOfSchedules(); j++) {
+                for (int j = 0; j < dsList.get(i).numberOfSchedules(); j++) {
                     starth = ds.getOnHour(j);
                     endh = ds.getOffHour(j);
                     startm = ds.getOnMinute(j);
@@ -866,15 +867,14 @@ public class ScheduleEditor extends JFrame implements ActionListener, WindowList
         c = Color.getHSBColor(0.58f, 1.0f, 0.75f);
         s = Color.getHSBColor(0.58f, 1.0f, 0.15f);
 
-        AlphaComposite myAlpha = AlphaComposite.getInstance(
-                AlphaComposite.SRC_OVER, 0.6f);
+        AlphaComposite myAlpha = AlphaComposite.getInstance(AlphaComposite.SRC_OVER, 0.6f);
         g2.setComposite(myAlpha);
 
         g2.setPaint(s);
         g2.setStroke(new BasicStroke(2));
         g2.setColor(c);
 
-        for (i = 0; i < scheds; i++) {
+        for (int i = 0; i < scheds; i++) {
             g2.fill(rect[i]);
             g2.draw(rect[i]);
         }
@@ -884,15 +884,15 @@ public class ScheduleEditor extends JFrame implements ActionListener, WindowList
     public void mouseClicked(MouseEvent e) {
     }
 
-    public void mouseEntered(MouseEvent arg0) {
+    public void mouseEntered(MouseEvent e) {
     }
 
-    public void mouseExited(MouseEvent arg0) {
+    public void mouseExited(MouseEvent e) {
     }
 
-    public void mousePressed(MouseEvent arg0) {
+    public void mousePressed(MouseEvent e) {
     }
 
-    public void mouseReleased(MouseEvent arg0) {
+    public void mouseReleased(MouseEvent e) {
     }
 }

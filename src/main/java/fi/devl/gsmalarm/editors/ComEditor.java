@@ -46,6 +46,7 @@ import javax.swing.WindowConstants;
 
 import fi.devl.gsmalarm.GsmGUI;
 import fi.devl.gsmalarm.servers.ComServerThread;
+import org.apache.log4j.Logger;
 
 import java.text.DecimalFormat;
 import java.util.ArrayList;
@@ -56,34 +57,13 @@ import java.util.concurrent.ScheduledFuture;
 import static java.util.concurrent.TimeUnit.*;
 
 public class ComEditor extends JFrame implements ActionListener, WindowListener {
+    final static Logger log = Logger.getLogger(ComEditor.class);
 
-    private String otsikko;
-
-    private int selectedPort = 0;
-    private int selectedComCentral = 0;
-    private double signalStrength;
-
-    private ImageIcon logo;
     private ImageIcon[] verkko;
     private JLabel verkkoHolder;
 
-    private String[] portit;
-    private String[] keskukset;
-
-    private JButton saveData;
-    private JButton checkSignal;
-
-    private JPanel logoPanel;
-    private JPanel dataPanel;
-    private JLabel logoLabel;
-
-    private JComboBox porttiValikko;
-    private JComboBox vistikeskusValikko;
-
     private JTextField operatorField;
     private JTextField signalField;
-
-    private ArrayList<String> portList;
 
     private GsmGUI gui;
     private ComServerThread comServer;
@@ -91,12 +71,10 @@ public class ComEditor extends JFrame implements ActionListener, WindowListener 
     private ScheduledExecutorService scheduledDataPoll;
 
     public ComEditor(String otsikko, ArrayList<String> list, ComServerThread comServer, GsmGUI gui) {
-        this.otsikko = otsikko;
-        this.portList = list;
         this.gui = gui;
         this.comServer = comServer;
 
-        setTitle(this.otsikko);
+        setTitle(otsikko);
         setSize(640, 480);
         setBackground(Color.white);
         setResizable(false);
@@ -104,12 +82,11 @@ public class ComEditor extends JFrame implements ActionListener, WindowListener 
         setDefaultCloseOperation(WindowConstants.DO_NOTHING_ON_CLOSE);
         addWindowListener(this);
 
-        // logo on top
-        logoPanel = new JPanel();
+        JPanel logoPanel = new JPanel();
         logoPanel.setLayout(new GridBagLayout());
-        this.logo = this.gui.createImageIcon("images/bg.png");
-        logoLabel = new JLabel();
-        logoLabel.setIcon(this.logo);
+        ImageIcon logo = this.gui.createImageIcon("images/bg.png");
+        JLabel logoLabel = new JLabel();
+        logoLabel.setIcon(logo);
         logoPanel.add(logoLabel);
 
         this.verkko = new ImageIcon[11];
@@ -122,18 +99,18 @@ public class ComEditor extends JFrame implements ActionListener, WindowListener 
         verkkoHolder.setIcon(this.verkko[0]);
 
         // input-datahandling
-        this.portit = new String[this.portList.size()];
+        String[] portit = new String[list.size()];
 
-        for (int i = 0; i < this.portList.size(); i++) {
-            this.portit[i] = this.portList.get(i);
+        for (int i = 0; i < list.size(); i++) {
+            portit[i] = list.get(i);
         }
 
         // comboboxes and anction listeners
-        porttiValikko = new JComboBox(portit);
+        JComboBox porttiValikko = new JComboBox(portit);
         porttiValikko.addActionListener(this);
 
         // userdata and buttons
-        dataPanel = new JPanel();
+        JPanel dataPanel = new JPanel();
         dataPanel.setLayout(new GridBagLayout());
         dataPanel.setBackground(Color.white);
         GridBagConstraints c = new GridBagConstraints();
@@ -147,11 +124,11 @@ public class ComEditor extends JFrame implements ActionListener, WindowListener 
         this.signalField = new JTextField("Ei signaalia", 15);
         this.signalField.setBackground(Color.getHSBColor(0.0f, 0.0f, 0.95f));
 
-        this.saveData = new JButton("Tallenna muutokset");
-        this.saveData.addActionListener(this);
-        this.saveData.setActionCommand("save");
+        JButton saveData = new JButton("Tallenna muutokset");
+        saveData.addActionListener(this);
+        saveData.setActionCommand("save");
 
-        this.porttiValikko.setActionCommand("portSelect");
+        porttiValikko.setActionCommand("portSelect");
 
         c.gridx = 0;
         c.gridy = 0;
@@ -290,7 +267,8 @@ public class ComEditor extends JFrame implements ActionListener, WindowListener 
     public void actionPerformed(ActionEvent e) {
         if (e.getActionCommand().equals("portSelect")) {
             JComboBox cb = (JComboBox) e.getSource();
-            this.selectedPort = cb.getSelectedIndex();
+            int selectedPort = cb.getSelectedIndex();
+            log.debug("portSelect, we should do somethingg" + selectedPort);
             this.updateFields();
         }
     }
@@ -320,7 +298,7 @@ public class ComEditor extends JFrame implements ActionListener, WindowListener 
     public void windowOpened(WindowEvent arg0) {
     }
 
-    public void updater(final ComEditor parent) {
+    private void updater(final ComEditor parent) {
         final Runnable updateData = new Runnable() {
             public void run() {
                 parent.updateFields();
@@ -330,7 +308,7 @@ public class ComEditor extends JFrame implements ActionListener, WindowListener 
         final ScheduledFuture<?> dataHandle = scheduledDataPoll.scheduleAtFixedRate(updateData, 10, 10, SECONDS);
     }
 
-    public void updateFields() {
+    private void updateFields() {
         Double percent;
         String strength;
         String pattern;
@@ -347,8 +325,6 @@ public class ComEditor extends JFrame implements ActionListener, WindowListener 
 
             percent = Double.parseDouble(strength);
             percent = (percent / 31.0) * 100.0;
-
-            // limiter
             percent = Math.min(percent, 100.0);
             percent = Math.max(percent, 0.0);
 

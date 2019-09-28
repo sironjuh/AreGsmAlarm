@@ -33,30 +33,31 @@ import gnu.io.CommPortIdentifier;
 import gnu.io.SerialPort;
 import gnu.io.SerialPortEvent;
 import gnu.io.SerialPortEventListener;
+import org.apache.log4j.Logger;
 
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 
 import java.util.ArrayList;
+import java.util.Enumeration;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.TimeUnit;
 
 public class ComServerThread implements Runnable {
+    private final static Logger log = Logger.getLogger(ComServerThread.class);
 
     private CommPort commPort;
-    private SerialPort serialPort;
     private InputStream inStream;
     private OutputStream outStream;
     private boolean comReserve = false;
 
     private String signal = "Ei signaalia";
-    private String operator = "Ei operaattoria";
 
     private LinkedBlockingQueue<String> outLinkedBlockingQueue;
     private LinkedBlockingQueue<String> inLinkedBlockingQueue;
 
-    public ComServerThread() throws IOException {
+    public ComServerThread() {
         this.outLinkedBlockingQueue = new LinkedBlockingQueue<>();
         this.inLinkedBlockingQueue = new LinkedBlockingQueue<>();
     }
@@ -64,21 +65,21 @@ public class ComServerThread implements Runnable {
     public void connect(String portName) throws Exception {
         CommPortIdentifier portIdentifier = CommPortIdentifier.getPortIdentifier(portName);
         if (portIdentifier.isCurrentlyOwned()) {
-            System.out.println("Error: Port is currently in use");
+            log.error("Error: Port is currently in use");
         } else {
             this.commPort = portIdentifier.open(this.getClass().getName(), 2000);
 
-            if (this.commPort instanceof SerialPort) {
-                this.serialPort = (SerialPort) this.commPort;
-                this.serialPort.setSerialPortParams(9600, SerialPort.DATABITS_8, SerialPort.STOPBITS_1, SerialPort.PARITY_NONE);
+            if (this.commPort != null) {
+                SerialPort serialPort = (SerialPort) this.commPort;
+                serialPort.setSerialPortParams(9600, SerialPort.DATABITS_8, SerialPort.STOPBITS_1, SerialPort.PARITY_NONE);
 
-                this.inStream = this.serialPort.getInputStream();
-                this.outStream = this.serialPort.getOutputStream();
+                this.inStream = serialPort.getInputStream();
+                this.outStream = serialPort.getOutputStream();
 
-                this.serialPort.addEventListener(new SerialReader(this.inStream, this.inLinkedBlockingQueue));
-                this.serialPort.notifyOnDataAvailable(true);
+                serialPort.addEventListener(new SerialReader(this.inStream, this.inLinkedBlockingQueue));
+                serialPort.notifyOnDataAvailable(true);
             } else {
-                System.out.println("Error: Only serial ports are handled.");
+                log.error("Error: Only serial ports are handled.");
             }
         }
     }
@@ -99,11 +100,11 @@ public class ComServerThread implements Runnable {
 
     /**
      *
-     * Plain datasending function. When it receives EOF it will write byte 26 into
+     * Plain datas ending function. When it receives EOF it will write byte 26 into
      * the datastream.
      *
-     * @param data
-     * @throws IOException
+     * @param data string to be written to outstream
+     * @throws IOException if the write fails we get IOException
      */
     private void sendData(String data) throws IOException {
         byte[] buf;
@@ -124,7 +125,7 @@ public class ComServerThread implements Runnable {
      * @param id
      * @throws IOException
      */
-    public void sendAlarm(String number, String id, String message) throws IOException, InterruptedException {
+    public void sendAlarm(String number, String id, String message) throws InterruptedException {
         String command;
         this.comReserve = true;
 
@@ -143,8 +144,9 @@ public class ComServerThread implements Runnable {
         command = this.inLinkedBlockingQueue.poll(250, TimeUnit.MILLISECONDS);
         command = this.inLinkedBlockingQueue.poll(250, TimeUnit.MILLISECONDS);
 
-        //this.outLinkedBlockingQueue.put("AT+CSCA=\"+358405202000\"\r\n");	//sonera
-        this.outLinkedBlockingQueue.put("AT+CSCA=\"+358508771010\"\r\n");    //elisa
+        // TODO: add Viestikeskus handling
+        //this.outLinkedBlockingQueue.put("AT+CSCA=\"+358405202000\"\r\n");	 //sonera
+        this.outLinkedBlockingQueue.put("AT+CSCA=\"+358508771010\"\r\n"); //elisa
         Thread.sleep(250);
         command = this.inLinkedBlockingQueue.poll(250, TimeUnit.MILLISECONDS);
         command = this.inLinkedBlockingQueue.poll(250, TimeUnit.MILLISECONDS);
@@ -160,7 +162,7 @@ public class ComServerThread implements Runnable {
         Thread.sleep(500);
         command = this.inLinkedBlockingQueue.poll(250, TimeUnit.MILLISECONDS);
         command = this.inLinkedBlockingQueue.poll(250, TimeUnit.MILLISECONDS);
-        System.out.println("Vastaus: " + command);
+        log.debug("Vastaus: " + command);
 
         this.inLinkedBlockingQueue.clear(); //throw it away
         Thread.sleep(2000);
@@ -173,11 +175,11 @@ public class ComServerThread implements Runnable {
      * parseScandics will replace all characters that will not work in
      * GSM-modem
      *
-     * @param input
+     * @param input alarm input string
      * @return parsed output string
      */
 
-    public String parseScandics(String input) {
+    private String parseScandics(String input) {
         input = input.replace('_', (char) 0x11);
         input = input.replace('ä', (char) 0x0f);
         input = input.replace('Ä', (char) 0x7b);
@@ -214,7 +216,7 @@ public class ComServerThread implements Runnable {
                     this.signal = this.signal.replace(',', '.');
                 }
 
-                System.out.println("Signaali: " + this.signal);
+                log.debug("Signaali: " + this.signal);
                 this.inLinkedBlockingQueue.clear();
             } catch (InterruptedException problem) {
                 problem.printStackTrace();
@@ -224,37 +226,36 @@ public class ComServerThread implements Runnable {
     }
 
     public String serviceProvider() {
-        String temp = "";
+        String result = "Ei operaattoria";
+        String response;
         int length;
 
         if (!this.comReserve) {
             try {
-                this.inLinkedBlockingQueue.clear();    //clear the incoming buffer
+                this.inLinkedBlockingQueue.clear();
                 this.outLinkedBlockingQueue.put("AT+COPS?\r\n");
                 Thread.sleep(100);
-                this.operator = this.inLinkedBlockingQueue.poll(); //echo
                 Thread.sleep(100);
-                this.operator = this.inLinkedBlockingQueue.poll(); //respose
+                response = this.inLinkedBlockingQueue.poll(); //respose
                 this.inLinkedBlockingQueue.clear();
 
-                if (this.operator == null) {
-                    this.operator = "Ei operaattoria";
+                if (response == null) {
+                    result = "Ei operaattoria";
                 } else {
-                    length = this.operator.length();
-                    if (this.operator.equals("+COPS: 0")) {
-                        this.operator = "Haetaan verkkoa";
+                    length = response.length();
+                    if (response.equals("+COPS: 0")) {
+                        result = "Haetaan verkkoa";
                     } else {
-                        temp = this.operator.substring(12, length - 2);
-                        this.operator = temp;
+                        result = response.substring(12, length - 2);
                     }
                 }
 
-                System.out.println("Operaattori: " + this.operator);
-            } catch (InterruptedException problem) {
-                problem.printStackTrace();
+                log.debug("Operaattori: " + result);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
             }
         }
-        return this.operator;
+        return result;
     }
 
     /**
@@ -264,11 +265,11 @@ public class ComServerThread implements Runnable {
      * @return ArrayList<String> ports
      */
     public ArrayList<String> listPorts() {
-        ArrayList<String> ports = new ArrayList<String>();
+        ArrayList<String> ports = new ArrayList<>();
 
-        java.util.Enumeration<CommPortIdentifier> portEnum = CommPortIdentifier.getPortIdentifiers();
+        Enumeration portEnum = CommPortIdentifier.getPortIdentifiers();
         while (portEnum.hasMoreElements()) {
-            CommPortIdentifier portIdentifier = portEnum.nextElement();
+            CommPortIdentifier portIdentifier = (CommPortIdentifier) portEnum.nextElement();
             if (portIdentifier.getPortType() == CommPortIdentifier.PORT_SERIAL) {
                 ports.add(portIdentifier.getName());
             }
@@ -318,7 +319,7 @@ public class ComServerThread implements Runnable {
         private InputStream in;
         private byte[] buffer = new byte[1024];
 
-        public SerialReader(InputStream in, LinkedBlockingQueue<String> inLinkedBlockingQueue) {
+        SerialReader(InputStream in, LinkedBlockingQueue<String> inLinkedBlockingQueue) {
             this.in = in;
         }
 
@@ -333,7 +334,7 @@ public class ComServerThread implements Runnable {
                     }
                     buffer[len++] = (byte) data;
                 }
-                System.out.print(new String(buffer,0,len));
+                log.debug(new String(buffer,0,len));
                 try {
                     inLinkedBlockingQueue.put(new String(buffer, 0, len));
                 } catch (InterruptedException problem) {

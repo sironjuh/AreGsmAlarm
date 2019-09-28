@@ -45,4 +45,12 @@
         </alarmClass>
         <state value="true"/>
     </user>
+    <user>
+        <name>Keke</name>
+        <phoneNumber>+358401234567</phoneNumber>
+        <scheduleId>0</scheduleId>
+        <id>Kohteen tunnus</id>
+        <alarmClass/>
+        <state value="true"/>
+    </user>
 </userList>

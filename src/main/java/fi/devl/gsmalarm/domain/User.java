@@ -20,10 +20,7 @@
 
 package fi.devl.gsmalarm.domain;
 
-import fi.devl.gsmalarm.domain.TimeTable;
-
 import java.util.ArrayList;
-
 
 public class User {
 
@@ -34,48 +31,12 @@ public class User {
     private ArrayList<String> almIds;
     private boolean active;
 
-    public User(String name) {
-        this.name = name;
-        this.phoneNumber = "";
-        this.schedule = null;
-        this.id = "";
-        this.almIds = new ArrayList<String>();
-        this.active = false;
-    }
-
-    public User(String name, String phoneNumber) {
-        this.name = name;
-        this.phoneNumber = phoneNumber;
-        this.schedule = null;
-        this.id = "";
-        this.almIds = new ArrayList<String>();
-        this.active = false;
-    }
-
-    public User(String name, String phoneNumber, TimeTable schedule) {
-        this.name = name;
-        this.phoneNumber = phoneNumber;
-        this.schedule = schedule;
-        this.id = "";
-        this.almIds = new ArrayList<String>();
-        this.active = false;
-    }
-
-    public User(String name, String phoneNumber, TimeTable schedule, String id) {
-        this.name = name;
-        this.phoneNumber = phoneNumber;
-        this.schedule = schedule;
-        this.id = id;
-        this.almIds = new ArrayList<String>();
-        this.active = false;
-    }
-
     public User(String name, String phoneNumber, TimeTable schedule, String id, boolean active) {
         this.name = name;
         this.phoneNumber = phoneNumber;
         this.schedule = schedule;
         this.id = id;
-        this.almIds = new ArrayList<String>();
+        this.almIds = new ArrayList<>();
         this.active = active;
     }
 
@@ -158,9 +119,11 @@ public class User {
     public boolean almIdMatch(String id) {
         boolean retval = false;
 
-        for (int i = 0; i < this.almIds.size(); i++) {
-            if (this.almIds.get(i).equals(id))
+        for (String almId : this.almIds) {
+            if (almId.equals(id)) {
                 retval = true;
+                break;
+            }
         }
         return retval;
     }
