@@ -70,6 +70,7 @@ import javax.xml.parsers.ParserConfigurationException;
 
 import fi.devl.gsmalarm.domain.TimeTable;
 import fi.devl.gsmalarm.domain.User;
+import org.apache.log4j.Logger;
 import org.xml.sax.SAXException;
 
 import fi.devl.gsmalarm.editors.ComEditor;
@@ -80,10 +81,7 @@ import fi.devl.gsmalarm.servers.AlarmServerThread;
 import fi.devl.gsmalarm.servers.ComServerThread;
 
 public class GsmGUI extends JFrame implements ActionListener, TableModelListener, WindowListener {
-
-    // jframe size
-    private int width = 640;
-    private int height = 480;
+    final static Logger log = Logger.getLogger(GsmGUI.class);
 
     // first page datafields
     private JTextField alarmsField;
@@ -111,8 +109,6 @@ public class GsmGUI extends JFrame implements ActionListener, TableModelListener
     // booleans
     private boolean alarmsEnabled = false;
 
-    //images
-    private ImageIcon logo;
     private ImageIcon hyvin;
     private ImageIcon ok;
     private ImageIcon seis;
@@ -137,19 +133,17 @@ public class GsmGUI extends JFrame implements ActionListener, TableModelListener
     private ComServerThread comServer;
     private ExecutorService executorService;
 
-    // arraylists for userdata
     private ArrayList<String> comPorts;
     private ArrayList<User> userList;
     private ArrayList<TimeTable> ttList;
-    //private ArrayList<Viestikeskus> vkList;
 
     private User tempUser;
     public FileIO fileIO;
 
     GsmGUI() {
-
-        // set jframe size, title, x-button function
-        setSize(this.width, this.height);
+        int width = 640;
+        int height = 480;
+        setSize(width, height);
         setTitle("Are Gsm Alarm v1.0");
         setDefaultCloseOperation(WindowConstants.DO_NOTHING_ON_CLOSE);
         addWindowListener(this);
@@ -217,21 +211,17 @@ public class GsmGUI extends JFrame implements ActionListener, TableModelListener
                 }
             }
         } catch (UnsupportedLookAndFeelException e) {
-            System.out.println("Error: this look and feel is not present on your system");
-        } catch (ClassNotFoundException problem) {
-            problem.printStackTrace();
-        } catch (InstantiationException problem) {
-            problem.printStackTrace();
-        } catch (IllegalAccessException problem) {
+            log.error("Error: this look and feel is not present on your system");
+        } catch (ClassNotFoundException | InstantiationException | IllegalAccessException problem) {
             problem.printStackTrace();
         }
 
-        // logo yläreunaan
         JPanel logoPanel = new JPanel();
         logoPanel.setLayout(new GridBagLayout());
-        this.logo = this.createImageIcon("images/bg_21.png");
+
+        ImageIcon logo = this.createImageIcon("images/bg_21.png");
         JLabel logoLabel = new JLabel();
-        logoLabel.setIcon(this.logo);
+        logoLabel.setIcon(logo);
         logoPanel.add(logoLabel);
 
         // etusivun tiedot
@@ -252,25 +242,13 @@ public class GsmGUI extends JFrame implements ActionListener, TableModelListener
         this.changeStateButton.setContentAreaFilled(false);
         this.changeStateButton.setRolloverIcon(this.ok_roll);
         this.changeStateButton.setRolloverEnabled(true);
-        this.changeStateButton.setToolTipText("Paina t�st� est��ksesi jatkoh�lytykset");
-	
-		/*
-		this.enableAlarms = new JButton("Salli GSM-h�lytykset");
-		this.disableAlarms = new JButton("Est� GSM-h�lytykset");
-		this.enableAlarms.setActionCommand("enableAlarms");
-		this.disableAlarms.setActionCommand("disableAlarms");
-
-		this.enableAlarms.setEnabled(false);
-		this.disableAlarms.setEnabled(true);
-		*/
+        this.changeStateButton.setToolTipText("Paina tästä estääksesi jatkohälytykset");
 
         this.changeStateButton.setIcon(this.ok);
         this.changeStateButton.setActionCommand("changeState");
 
         // actionListenerit ekalle sivulle
         this.changeStateButton.addActionListener(this);
-        //this.enableAlarms.addActionListener(this);
-        //this.disableAlarms.addActionListener(this);
 
         // asetetaan oletuksena jatkohälytykset ok
         this.alarmsEnabled = true;
@@ -280,8 +258,6 @@ public class GsmGUI extends JFrame implements ActionListener, TableModelListener
         this.table = new JTable(new UserTableModel());
         this.table.getModel().addTableModelListener(this);
         this.table.setAutoCreateRowSorter(true);
-
-        //this.table.setAutoCreateColumnsFromModel(false);
 
         this.table.getTableHeader().setReorderingAllowed(false);
         this.table.getTableHeader().setResizingAllowed(false);
@@ -296,34 +272,30 @@ public class GsmGUI extends JFrame implements ActionListener, TableModelListener
         this.messageCentral.setActionCommand("messageCentral");
         this.comCentral.setActionCommand("comCentral");
 
-        // aktivoidaan / diabloidaan namiskuukkelit
         this.userEdit.setEnabled(true);
         this.scheduleEdit.setEnabled(true);
         this.messageCentral.setEnabled(false);
         this.comCentral.setEnabled(true);
 
-        // actionListeners
         this.userEdit.addActionListener(this);
         this.scheduleEdit.addActionListener(this);
         this.messageCentral.addActionListener(this);
         this.comCentral.addActionListener(this);
 
-        // tietoja sivu
         this.hyvin = this.createImageIcon("images/hyvin.png");
 
-        // v�lilehdet
         JTabbedPane tabbedPane = new JTabbedPane();
         tabbedPane.setTabPlacement(SwingConstants.BOTTOM);
 
-        this.panel1 = makePanel1();
+        this.panel1 = makeFrontPanel();
         tabbedPane.addTab("Etusivu", null, this.panel1, "Yleiset tiedot");
         tabbedPane.setMnemonicAt(0, KeyEvent.VK_1);
 
-        this.panel2 = makePanel2("Asetukset");
+        this.panel2 = makeSettingPanel("Asetukset");
         tabbedPane.addTab("Asetukset", null, this.panel2, "Asetukset, viestinumerot");
         tabbedPane.setMnemonicAt(1, KeyEvent.VK_2);
 
-        this.panel3 = makePanel3("Tietoja");
+        this.panel3 = makeAboutPanel("Tietoja");
         tabbedPane.addTab("Tietoja", null, this.panel3, "Tietoja ohjelmasta");
         tabbedPane.setMnemonicAt(2, KeyEvent.VK_3);
 
@@ -342,7 +314,7 @@ public class GsmGUI extends JFrame implements ActionListener, TableModelListener
      * initAlarmServer() will initialize AlarmServerThread. Will inform if the port 4445 is reserved
      * and causes program to exit if AlarmServer fails to start.
      */
-    protected void initAlarmServer() {
+    private void initAlarmServer() {
         try {
             this.alarmServer = new AlarmServerThread(this);
         } catch (IOException problem) {
@@ -355,8 +327,7 @@ public class GsmGUI extends JFrame implements ActionListener, TableModelListener
     /**
      * initComserver() will initialize ComServerThread.
      */
-
-    protected void initComServer() {
+    private void initComServer() {
         try {
             this.comServer = new ComServerThread();
         } catch (IOException problem) {
@@ -385,7 +356,7 @@ public class GsmGUI extends JFrame implements ActionListener, TableModelListener
      * Returns an ImageIcon, or null if the path was invalid.
      */
     public ImageIcon createImageIcon(String path) {
-        java.net.URL imgURL = getClass().getResource(path);
+        java.net.URL imgURL = getClass().getClassLoader().getResource(path);
         if (imgURL != null) {
             return new ImageIcon(imgURL);
         } else {
@@ -394,7 +365,7 @@ public class GsmGUI extends JFrame implements ActionListener, TableModelListener
         }
     }
 
-    protected JComponent makePanel1() {
+    private JComponent makeFrontPanel() {
         JPanel panel = new JPanel(false);
         panel.setBackground(Color.white);
         panel.setLayout(new GridBagLayout());
@@ -564,7 +535,7 @@ public class GsmGUI extends JFrame implements ActionListener, TableModelListener
         return panel;
     }
 
-    protected JComponent makePanel2(String text) {
+    private JComponent makeSettingPanel(String text) {
         JPanel panel = new JPanel(false);
         JScrollPane scrollpane = new JScrollPane(panel);
         scrollpane.setBackground(Color.white);
@@ -641,7 +612,7 @@ public class GsmGUI extends JFrame implements ActionListener, TableModelListener
         return panel;
     }
 
-    protected JComponent makePanel3(String text) {
+    protected JComponent makeAboutPanel(String text) {
         JPanel panel = new JPanel(false);
         JScrollPane scrollpane = new JScrollPane(panel);
         scrollpane.setBackground(Color.white);
@@ -874,7 +845,6 @@ public class GsmGUI extends JFrame implements ActionListener, TableModelListener
         this.table.tableChanged(this.tableEvent);
     }
 
-    // UserTableModel 
     class UserTableModel extends AbstractTableModel {
         public int getColumnCount() {
             return columnNames.length;
@@ -889,10 +859,11 @@ public class GsmGUI extends JFrame implements ActionListener, TableModelListener
         }
 
         public Object getValueAt(int row, int col) {
-            if (data.length > 0)
+            if (data.length > 0) {
                 return data[row][col];
-            else
+            } else {
                 return null;
+            }
         }
 
         /*
@@ -915,11 +886,7 @@ public class GsmGUI extends JFrame implements ActionListener, TableModelListener
         public boolean isCellEditable(int row, int col) {
             //Note that the data/cell address is constant,
             //no matter where the cell appears onscreen.
-            if (col < 4) {
-                return false;
-            } else {
-                return true;
-            }
+            return col >= 4;
         }
 
         /*

@@ -10,10 +10,13 @@
 
 package fi.devl.gsmalarm;
 
-import java.io.IOException;
+import org.apache.log4j.Logger;
 
 public class AreGsmAlarm {
-    public static void main(String[] args) throws IOException {
+    final static Logger log = Logger.getLogger(AreGsmAlarm.class);
+
+    public static void main(String[] args) {
+        log.info("Starting AreGsmAlarm");
         new GsmGUI().start();
     }
 }
