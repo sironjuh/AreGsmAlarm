@@ -26,16 +26,13 @@ public class DaySchedule {
     private ArrayList<String> offTime;
     private ArrayList<String> onTimeValue;
 
-    //String DATE_FORMAT_NOW = "HH:mm:ss dd-MM-yyyy";
-
     public DaySchedule(String name) {
         this.name = name;
         this.daynum = -1;
-        this.onTime = new ArrayList<String>();
-        this.offTime = new ArrayList<String>();
-        this.onTimeValue = new ArrayList<String>();
+        this.onTime = new ArrayList<>();
+        this.offTime = new ArrayList<>();
+        this.onTimeValue = new ArrayList<>();
     }
-
 
     public void setName(String newName) {
         this.name = newName;
@@ -58,7 +55,7 @@ public class DaySchedule {
     }
 
     public int getOnHour(int schedn) {
-        String ont[];
+        String[] ont;
         int onh = -1;
 
         if (this.onTime.get(schedn) != null) {
@@ -69,19 +66,16 @@ public class DaySchedule {
         return onh;
     }
 
-
     public void setOnTime(int schedn, String time) {
-        //System.out.println(this.name + "ontime: " + time);
         this.onTime.set(schedn, time);
     }
 
     public void setOffTime(int schedn, String time) {
-        //System.out.println(this.name + "offtime: " + time);
         this.offTime.set(schedn, time);
     }
 
     public int getOnMinute(int schedn) {
-        String ont[];
+        String[] ont;
         int onm = -1;
 
         if (this.onTime.get(schedn) != null) {
@@ -93,7 +87,7 @@ public class DaySchedule {
     }
 
     public int getOffHour(int schedn) {
-        String offt[];
+        String[] offt;
         int offh = -1;
 
         if (this.offTime.get(schedn) != null) {
@@ -104,7 +98,7 @@ public class DaySchedule {
     }
 
     public int getOffMinute(int schedn) {
-        String offt[];
+        String[] offt;
         int offm = -1;
 
         if (this.offTime.get(schedn) != null) {
@@ -113,7 +107,6 @@ public class DaySchedule {
         }
         return offm;
     }
-
 
     public boolean addSchedule(String onTime, String offTime, String onTimeValue) {
         this.onTime.add(onTime);
@@ -146,7 +139,7 @@ public class DaySchedule {
         return true;
     }
 
-    public boolean isActive(int curh, int curm) {
+    boolean isActive(int curh, int curm) {
         boolean act = false;
         int onh;
         int onm;
@@ -164,9 +157,6 @@ public class DaySchedule {
 
             offh = Integer.parseInt(schedoff[0]);
             offm = Integer.parseInt(schedoff[1]);
-
-            //System.out.println("onhour: " + onh + " onminute: " + onm);
-            //System.out.println("offhour: " + offh + " offminute: " + offm);
 
             if (curh == onh && curm >= onm)
                 act = true;
