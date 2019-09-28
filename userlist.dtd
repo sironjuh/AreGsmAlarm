@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+        <!ELEMENT userList (user*)>
+        <!ATTLIST userList
+                version CDATA #REQUIRED
+                >
+        <!ELEMENT user (name, phoneNumber, scheduleId, id, alarmClass, state)>
+        <!ELEMENT name (#PCDATA)>
+        <!ELEMENT phoneNumber (#PCDATA)>
+        <!ELEMENT scheduleId (#PCDATA)>
+        <!ELEMENT id (#PCDATA)>
+        <!ELEMENT alarmClass (alarmId*)>
+        <!ELEMENT alarmId (#PCDATA)>
+        <!ELEMENT state (#PCDATA)>
+        <!ATTLIST state
+                value (true | false) #REQUIRED
+                >

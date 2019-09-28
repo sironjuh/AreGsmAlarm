@@ -14,7 +14,7 @@
  * @date 19.6.2010
  */
 
-package AreGsmAlarm;
+package fi.devl.gsmalarm.domain;
 
 import java.util.ArrayList;
 

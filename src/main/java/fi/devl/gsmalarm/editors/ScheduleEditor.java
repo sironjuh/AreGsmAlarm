@@ -24,7 +24,7 @@
  * @date 19.6.2010
  */
 
-package AreGsmAlarm.editors;
+package fi.devl.gsmalarm.editors;
 
 import java.awt.AlphaComposite;
 import java.awt.BasicStroke;
@@ -56,7 +56,6 @@ import javax.swing.JComboBox;
 import javax.swing.JComponent;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
-import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JSeparator;
 import javax.swing.JSpinner;
@@ -65,47 +64,31 @@ import javax.swing.JTextField;
 import javax.swing.SpinnerDateModel;
 import javax.swing.SpinnerModel;
 import javax.swing.WindowConstants;
-//import javax.swing.event.TableModelEvent;
 
-import AreGsmAlarm.DaySchedule;
-import AreGsmAlarm.GsmGUI;
-import AreGsmAlarm.TimeTable;
-import AreGsmAlarm.User;
+import fi.devl.gsmalarm.GsmGUI;
+import fi.devl.gsmalarm.domain.TimeTable;
+import fi.devl.gsmalarm.domain.User;
+import fi.devl.gsmalarm.domain.DaySchedule;
 
 public class ScheduleEditor extends JFrame implements ActionListener, WindowListener, MouseListener {
-
-    private String otsikko;
-
     private int selectedSchedule = 0;
     private int selectedDaySchedule = 0;
     private int selectedDay = 2;
 
-    private ImageIcon logo;
-
-    private String[] ajat;
     private String[] ohjelmat;
 
-    // spinnerit
     private Calendar alkuAika;
     private Calendar loppuAika;
 
     private ArrayList<TimeTable> ttList;
-    //private ArrayList<DaySchedule> dsList;
 
-    private JButton addSchedule;
     private JButton removeSchedule;
     private JButton saveData;
-    private JButton addDaySchedule;
-    private JButton removeDaySchedule;
 
     private JTextField aikaKentta;
 
     private JPanel logoPanel;
-    private JPanel dataPanel;
     private JPanel timePanel;
-    private JPanel bottomPanel;
-
-    private JLabel logoLabel;
 
     private JComboBox aikaValikko;
     private JComboBox paivaValikko;
@@ -114,37 +97,18 @@ public class ScheduleEditor extends JFrame implements ActionListener, WindowList
     private JSpinner spinnerAlku;
     private JSpinner spinnerLoppu;
 
-    // tables
     private JTable timeTable;
-    //private TableModelEvent timeEvent = null;
-
     private JTable clockTable;
-    //private TableModelEvent Event = null;
-
-    //table data
-    private String[] weekDays = {"Maanantai",
-            "Tiistai",
-            "Keskiviikko",
-            "Torstai",
-            "Perjantai",
-            "Lauantai",
-            "Sunnuntai"};
-
-    private String[] clock = {"Kello"};
-
-    private Object[][] tableData = new Object[0][0];
-    private Object[][] clockData = new Object[0][0];
 
     private GsmGUI gui;
 
     private DaySchedule ds;
 
     public ScheduleEditor(String otsikko, ArrayList<User> list, ArrayList<TimeTable> tt, GsmGUI gui) {
-        this.otsikko = otsikko;
         this.ttList = tt;
         this.gui = gui;
 
-        setTitle(this.otsikko);
+        setTitle(otsikko);
         setSize(700, 780);
         setBackground(Color.white);
         setResizable(false);
@@ -155,23 +119,24 @@ public class ScheduleEditor extends JFrame implements ActionListener, WindowList
         // logo on top
         this.logoPanel = new JPanel();
         this.logoPanel.setLayout(new GridBagLayout());
-        this.logo = gui.createImageIcon("images/bg_700.png");
-        this.logoLabel = new JLabel();
-        this.logoLabel.setIcon(this.logo);
-        this.logoPanel.add(this.logoLabel);
+        ImageIcon logo = gui.createImageIcon("images/bg_700.png");
+        JLabel logoLabel = new JLabel();
+        logoLabel.setIcon(logo);
+        this.logoPanel.add(logoLabel);
 
         // luodaan kellotaulu
-        this.clockData = new Object[24][1];
+        Object[][] clockData = new Object[24][1];
         for (int i = 0; i < 24; i++) {
-            this.clockData[i][0] = i + ":00";
+            clockData[i][0] = i + ":00";
         }
 
-        this.tableData = new Object[48][7];
+        Object[][] tableData = new Object[48][7];
         for (int i = 0; i < 48; i++) {
-            this.tableData[i][0] = "";
+            tableData[i][0] = "";
         }
 
-        this.clockTable = new JTable(this.clockData, this.clock);
+        String[] clock = {"Kello"};
+        this.clockTable = new JTable(clockData, clock);
         this.clockTable.setCellSelectionEnabled(false);
         this.clockTable.setDragEnabled(false);
         this.clockTable.setRowSelectionAllowed(false);
@@ -181,7 +146,9 @@ public class ScheduleEditor extends JFrame implements ActionListener, WindowList
         this.clockTable.getTableHeader().setReorderingAllowed(false);
         this.clockTable.getTableHeader().setResizingAllowed(false);
 
-        this.timeTable = new JTable(this.tableData, this.weekDays);
+        String[] weekDays = {"Maanantai", "Tiistai", "Keskiviikko", "Torstai", "Perjantai", "Lauantai", "Sunnuntai"};
+
+        this.timeTable = new JTable(tableData, weekDays);
         this.timeTable.setColumnSelectionAllowed(false);
         this.timeTable.setRowSelectionAllowed(false);
         this.timeTable.setCellSelectionEnabled(false);
@@ -196,15 +163,13 @@ public class ScheduleEditor extends JFrame implements ActionListener, WindowList
         this.timeTable.getTableHeader().setReorderingAllowed(false);
         this.timeTable.getTableHeader().setResizingAllowed(false);
 
-        // input-datahandling
-        this.ajat = new String[this.ttList.size()];
+        String[] ajat = new String[this.ttList.size()];
 
         for (int i = 0; i < this.ttList.size(); i++) {
-            this.ajat[i] = this.ttList.get(i).getName();
+            ajat[i] = this.ttList.get(i).getName();
         }
 
-        // comboboxes and action listeners
-        this.aikaValikko = new JComboBox(this.ajat);
+        this.aikaValikko = new JComboBox(ajat);
         this.aikaValikko.addActionListener(this);
 
         if (this.ttList.size() > 0) {
@@ -224,7 +189,7 @@ public class ScheduleEditor extends JFrame implements ActionListener, WindowList
             }
         }
 
-        this.paivaValikko = new JComboBox(this.weekDays);
+        this.paivaValikko = new JComboBox(weekDays);
         this.paivaValikko.addActionListener(this);
 
         this.ohjelmaValikko = new JComboBox(this.ohjelmat);
@@ -256,18 +221,18 @@ public class ScheduleEditor extends JFrame implements ActionListener, WindowList
         this.spinnerLoppu.setValue(this.loppuAika.getTime());
 
         // userdata and buttons
-        this.dataPanel = new JPanel();
-        this.dataPanel.setLayout(new GridBagLayout());
-        this.dataPanel.setBackground(Color.white);
+        JPanel dataPanel = new JPanel();
+        dataPanel.setLayout(new GridBagLayout());
+        dataPanel.setBackground(Color.white);
 
         this.timePanel = new JPanel();
 
         this.timePanel.setLayout(new GridBagLayout());
         this.timePanel.setBackground(Color.white);
 
-        this.bottomPanel = new JPanel();
-        this.bottomPanel.setLayout(new GridBagLayout());
-        this.bottomPanel.setBackground(Color.white);
+        JPanel bottomPanel = new JPanel();
+        bottomPanel.setLayout(new GridBagLayout());
+        bottomPanel.setBackground(Color.white);
 
         GridBagConstraints t = new GridBagConstraints();
         t.fill = GridBagConstraints.BOTH;
@@ -280,31 +245,31 @@ public class ScheduleEditor extends JFrame implements ActionListener, WindowList
 
         JLabel valinta = new JLabel(" Valitse aikataulu ");
 
-        this.addSchedule = new JButton("Luo uusi aikataulu");
+        JButton addSchedule = new JButton("Luo uusi aikataulu");
         this.removeSchedule = new JButton("Poista aikataulu");
         this.saveData = new JButton("Tallenna muutokset");
 
-        this.addDaySchedule = new JButton("Luo uusi päiväohjelma");
-        this.removeDaySchedule = new JButton("Poista päiväohjelma");
+        JButton addDaySchedule = new JButton("Luo uusi päiväohjelma");
+        JButton removeDaySchedule = new JButton("Poista päiväohjelma");
 
         if (this.ttList.size() == 0) {
             this.removeSchedule.setEnabled(false);
             this.saveData.setEnabled(false);
         }
 
-        this.addSchedule.addActionListener(this);
+        addSchedule.addActionListener(this);
         this.removeSchedule.addActionListener(this);
         this.saveData.addActionListener(this);
 
-        this.addDaySchedule.addActionListener(this);
-        this.removeDaySchedule.addActionListener(this);
+        addDaySchedule.addActionListener(this);
+        removeDaySchedule.addActionListener(this);
 
-        this.addSchedule.setActionCommand("addSchedule");
+        addSchedule.setActionCommand("addSchedule");
         this.removeSchedule.setActionCommand("removeSchedule");
         this.saveData.setActionCommand("saveSchedule");
 
-        this.addDaySchedule.setActionCommand("addDaySchedule");
-        this.removeDaySchedule.setActionCommand("removeDaySchedule");
+        addDaySchedule.setActionCommand("addDaySchedule");
+        removeDaySchedule.setActionCommand("removeDaySchedule");
 
         this.aikaValikko.setActionCommand("scheduleSelect");
         this.paivaValikko.setActionCommand("daySelect");
@@ -319,7 +284,7 @@ public class ScheduleEditor extends JFrame implements ActionListener, WindowList
         c.weightx = 0.0;
         c.weighty = 0.0;
         c.insets = new Insets(12, 2, 14, 2);
-        this.dataPanel.add(valinta, c);
+        dataPanel.add(valinta, c);
 
         c.gridx = 2;
         c.gridy = 1;
@@ -328,7 +293,7 @@ public class ScheduleEditor extends JFrame implements ActionListener, WindowList
         c.weightx = 0.0;
         c.weighty = 0.0;
         c.insets = new Insets(12, 2, 14, 2);
-        this.dataPanel.add(this.aikaValikko, c);
+        dataPanel.add(this.aikaValikko, c);
 
         c.gridx = 3;
         c.gridy = 1;
@@ -336,7 +301,7 @@ public class ScheduleEditor extends JFrame implements ActionListener, WindowList
         c.gridheight = 1;
         c.weightx = 1.0;
         c.weighty = 0.0;
-        this.dataPanel.add(new JLabel(" "), c);
+        dataPanel.add(new JLabel(" "), c);
 
         c.gridx = 4;
         c.gridy = 1;
@@ -344,7 +309,7 @@ public class ScheduleEditor extends JFrame implements ActionListener, WindowList
         c.gridheight = 1;
         c.weightx = 0.0;
         c.weighty = 0.0;
-        this.dataPanel.add(this.addSchedule, c);
+        dataPanel.add(addSchedule, c);
 
         c.gridx = 5;
         c.gridy = 1;
@@ -352,7 +317,7 @@ public class ScheduleEditor extends JFrame implements ActionListener, WindowList
         c.gridheight = 1;
         c.weightx = 0.0;
         c.weighty = 0.0;
-        this.dataPanel.add(this.removeSchedule, c);
+        dataPanel.add(this.removeSchedule, c);
 
         c.gridx = 0;
         c.gridy = 2;
@@ -361,7 +326,7 @@ public class ScheduleEditor extends JFrame implements ActionListener, WindowList
         c.weightx = 1.0;
         c.weighty = 0.0;
         c.insets = new Insets(2, 2, 2, 2);
-        this.dataPanel.add(new JSeparator(), c);
+        dataPanel.add(new JSeparator(), c);
 
         // aikapaneeli
         c.gridx = 0;
@@ -371,7 +336,7 @@ public class ScheduleEditor extends JFrame implements ActionListener, WindowList
         c.weightx = 0.0;
         c.weighty = 0.0;
         c.insets = new Insets(0, 0, 0, 0);
-        this.dataPanel.add(this.timePanel, c);
+        dataPanel.add(this.timePanel, c);
 
         // kello
         t.gridx = 0;
@@ -415,7 +380,7 @@ public class ScheduleEditor extends JFrame implements ActionListener, WindowList
         c.weightx = 1.0;
         c.weighty = 0.0;
         c.insets = new Insets(2, 2, 2, 2);
-        this.dataPanel.add(new JSeparator(), c);
+        dataPanel.add(new JSeparator(), c);
 
         //pohjapaneeli
         c.gridx = 0;
@@ -424,7 +389,7 @@ public class ScheduleEditor extends JFrame implements ActionListener, WindowList
         c.gridheight = 5;
         c.weightx = 1.0;
         c.weighty = 1.0;
-        this.dataPanel.add(this.bottomPanel, c);
+        dataPanel.add(bottomPanel, c);
 
         bott.gridx = 0;
         bott.gridy = 1;
@@ -433,7 +398,7 @@ public class ScheduleEditor extends JFrame implements ActionListener, WindowList
         bott.weightx = 0.0;
         bott.weighty = 0.0;
         bott.insets = new Insets(12, 2, 2, 2);
-        this.bottomPanel.add(new JLabel(" Aikataulu"), bott);
+        bottomPanel.add(new JLabel(" Aikataulu"), bott);
 
         bott.gridx = 1;
         bott.gridy = 1;
@@ -441,7 +406,7 @@ public class ScheduleEditor extends JFrame implements ActionListener, WindowList
         bott.gridheight = 1;
         bott.weightx = 0.0;
         bott.weighty = 0.0;
-        this.bottomPanel.add(this.aikaKentta, bott);
+        bottomPanel.add(this.aikaKentta, bott);
 
         bott.gridx = 0;
         bott.gridy = 2;
@@ -450,7 +415,7 @@ public class ScheduleEditor extends JFrame implements ActionListener, WindowList
         bott.weightx = 0.0;
         bott.weighty = 0.0;
         bott.insets = new Insets(2, 2, 2, 2);
-        this.bottomPanel.add(new JLabel(" Päivä"), bott);
+        bottomPanel.add(new JLabel(" Päivä"), bott);
 
         bott.gridx = 1;
         bott.gridy = 2;
@@ -458,7 +423,7 @@ public class ScheduleEditor extends JFrame implements ActionListener, WindowList
         bott.gridheight = 1;
         bott.weightx = 0.0;
         bott.weighty = 0.0;
-        this.bottomPanel.add(this.paivaValikko, bott);
+        bottomPanel.add(this.paivaValikko, bott);
 
         bott.gridx = 0;
         bott.gridy = 3;
@@ -466,7 +431,7 @@ public class ScheduleEditor extends JFrame implements ActionListener, WindowList
         bott.gridheight = 1;
         bott.weightx = 0.0;
         bott.weighty = 0.0;
-        this.bottomPanel.add(new JLabel(" Päiväohjelma"), bott);
+        bottomPanel.add(new JLabel(" Päiväohjelma"), bott);
 
         bott.gridx = 1;
         bott.gridy = 3;
@@ -474,7 +439,7 @@ public class ScheduleEditor extends JFrame implements ActionListener, WindowList
         bott.gridheight = 1;
         bott.weightx = 0.0;
         bott.weighty = 0.0;
-        this.bottomPanel.add(this.ohjelmaValikko, bott);
+        bottomPanel.add(this.ohjelmaValikko, bott);
 
         bott.gridx = 0;
         bott.gridy = 4;
@@ -482,7 +447,7 @@ public class ScheduleEditor extends JFrame implements ActionListener, WindowList
         bott.gridheight = 1;
         bott.weightx = 0.0;
         bott.weighty = 0.0;
-        this.bottomPanel.add(new JLabel(" Aloitusaika"), bott);
+        bottomPanel.add(new JLabel(" Aloitusaika"), bott);
 
         bott.gridx = 1;
         bott.gridy = 4;
@@ -490,7 +455,7 @@ public class ScheduleEditor extends JFrame implements ActionListener, WindowList
         bott.gridheight = 1;
         bott.weightx = 0.0;
         bott.weighty = 0.0;
-        this.bottomPanel.add(this.spinnerAlku, bott);
+        bottomPanel.add(this.spinnerAlku, bott);
 
         bott.gridx = 2;
         bott.gridy = 3;
@@ -498,7 +463,7 @@ public class ScheduleEditor extends JFrame implements ActionListener, WindowList
         bott.gridheight = 1;
         bott.weightx = 0.0;
         bott.weighty = 0.0;
-        this.bottomPanel.add(this.addDaySchedule, bott);
+        bottomPanel.add(addDaySchedule, bott);
 
         bott.gridx = 0;
         bott.gridy = 5;
@@ -506,7 +471,7 @@ public class ScheduleEditor extends JFrame implements ActionListener, WindowList
         bott.gridheight = 1;
         bott.weightx = 0.0;
         bott.weighty = 0.0;
-        this.bottomPanel.add(new JLabel(" Lopetusaika"), bott);
+        bottomPanel.add(new JLabel(" Lopetusaika"), bott);
 
         bott.gridx = 1;
         bott.gridy = 5;
@@ -514,7 +479,7 @@ public class ScheduleEditor extends JFrame implements ActionListener, WindowList
         bott.gridheight = 1;
         bott.weightx = 0.0;
         bott.weighty = 0.0;
-        this.bottomPanel.add(this.spinnerLoppu, bott);
+        bottomPanel.add(this.spinnerLoppu, bott);
 
         bott.gridx = 2;
         bott.gridy = 4;
@@ -522,7 +487,7 @@ public class ScheduleEditor extends JFrame implements ActionListener, WindowList
         bott.gridheight = 1;
         bott.weightx = 0.0;
         bott.weighty = 0.0;
-        this.bottomPanel.add(this.removeDaySchedule, bott);
+        bottomPanel.add(removeDaySchedule, bott);
 
         bott.gridx = 2;
         bott.gridy = 5;
@@ -530,7 +495,7 @@ public class ScheduleEditor extends JFrame implements ActionListener, WindowList
         bott.gridheight = 1;
         bott.weightx = 0.0;
         bott.weighty = 0.0;
-        this.bottomPanel.add(this.saveData, bott);
+        bottomPanel.add(this.saveData, bott);
 
         bott.gridx = 0;
         bott.gridy = 6;
@@ -538,13 +503,13 @@ public class ScheduleEditor extends JFrame implements ActionListener, WindowList
         bott.gridheight = 1;
         bott.weightx = 0.0;
         bott.weighty = 0.0;
-        this.bottomPanel.add(new JLabel(" "), bott);
+        bottomPanel.add(new JLabel(" "), bott);
 
         this.add(this.logoPanel);
-        this.add(this.dataPanel);
+        this.add(dataPanel);
 
         this.getContentPane().add(BorderLayout.NORTH, this.logoPanel);
-        this.getContentPane().add(BorderLayout.CENTER, this.dataPanel);
+        this.getContentPane().add(BorderLayout.CENTER, dataPanel);
 
         this.updateFieldData();
         this.timeTable.addMouseListener(this);
@@ -661,9 +626,6 @@ public class ScheduleEditor extends JFrame implements ActionListener, WindowList
         }
 
         if (e.getActionCommand().equals("removeDaySchedule")) {
-            String day = null;
-            int daynum = 0;
-
             this.ds = this.ttList.get(this.selectedSchedule).getDaySchedule(this.selectedDay);
 
             if (this.ds != null) {
@@ -704,70 +666,17 @@ public class ScheduleEditor extends JFrame implements ActionListener, WindowList
             }
 
             this.repaint();
-            //gui.fileIO.saveUserList(this.userList);
+            //gui.fileIO.saveTimeTableList(this.ttList);
         }
 
         if (e.getActionCommand().equals("remove")) {
-            /*
-            int temp;
-            int n;
-
             Object[] options = {"Kyllä", "Ei"};
 
-            if (this.userList.size() > 0) {
-                // varmistetaan ettei tule valinta mene negatiiviseksi kun poistetaan
-                // listan ensimmäinen käyttäjä
-                if (selectedUser > 0) {
-                    temp = selectedUser - 1;
-                } else {
-                    temp = selectedUser;
-                }
-
-                n = JOptionPane.showOptionDialog(this,
-                        "Halutako poistaa käyttäjän " + this.userList.get(selectedUser).getName()
-                                + " tiedot?",
-                        "Varoitus!",
-                        JOptionPane.YES_NO_OPTION,
-                        JOptionPane.QUESTION_MESSAGE,
-                        null,        //do not use a custom Icon
-                        options,     //the titles of buttons
-                        options[0]); //default button title
-
-                if (n == 0) {
-                    this.userList.remove(selectedUser);
-                    //this.nimiValikko.removeItemAt(selectedUser);
-
-                    numOfUsers = this.userList.size();
-                    this.nimet = new String[numOfUsers];
-                    this.nimiValikko.removeAllItems();
-
-                    for (int i = 0; i < numOfUsers; i++) {
-                        this.nimet[i] = this.userList.get(i).getName();
-                        this.nimiValikko.addItem(this.nimet[i]);
-                    }
-
-
-                    // jos lista tyhj�, otetaan arvolla -1 kentt� tyhj�ksi
-                    if (this.userList.size() > 0) {
-                        this.nimiValikko.setSelectedIndex(temp);
-                    } else {
-                        this.nimiValikko.setSelectedIndex(-1);
-                    }
-
-                    this.updateFieldData();
-                }
-            }
-
-            if (this.userList.size() == 0) {
-                this.saveData.setEnabled(false);
-                this.removeUser.setEnabled(false);
-                this.updateFieldData();
-            }
+            // TODO
         }
-        */
     }
 
-    public void updateFieldData() {
+    private void updateFieldData() {
         System.out.println("[updateFieldData]");
         if (this.ttList.size() > 0 && this.selectedSchedule < this.ttList.size() && this.selectedSchedule >= 0) {
             this.aikaKentta.setText(this.ttList.get(this.selectedSchedule).getName());
@@ -780,7 +689,7 @@ public class ScheduleEditor extends JFrame implements ActionListener, WindowList
         }
     }
 
-    public void updateDaySchedData() {
+    private void updateDaySchedData() {
         int count;
 
         this.ds = this.ttList.get(this.selectedSchedule).getDaySchedule(this.selectedDay);
@@ -852,7 +761,7 @@ public class ScheduleEditor extends JFrame implements ActionListener, WindowList
         }
     }
 
-    public void windowActivated(WindowEvent arg0) {
+    public void windowActivated(WindowEvent _) {
         this.repaint();
     }
 

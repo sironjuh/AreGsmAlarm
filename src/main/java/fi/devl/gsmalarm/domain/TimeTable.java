@@ -19,7 +19,9 @@
  */
 
 
-package AreGsmAlarm;
+package fi.devl.gsmalarm.domain;
+
+import fi.devl.gsmalarm.domain.DaySchedule;
 
 import java.util.ArrayList;
 import java.util.Calendar;

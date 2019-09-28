@@ -21,26 +21,27 @@
  */
 
 
-package AreGsmAlarm;
+package fi.devl.gsmalarm;
 
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Iterator;
 
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.transform.OutputKeys;
 import javax.xml.transform.Transformer;
-import javax.xml.transform.TransformerConfigurationException;
 import javax.xml.transform.TransformerException;
 import javax.xml.transform.TransformerFactory;
 import javax.xml.transform.TransformerFactoryConfigurationError;
 import javax.xml.transform.dom.DOMSource;
 import javax.xml.transform.stream.StreamResult;
 
+import fi.devl.gsmalarm.domain.DaySchedule;
+import fi.devl.gsmalarm.domain.TimeTable;
+import fi.devl.gsmalarm.domain.User;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.NodeList;
@@ -48,37 +49,24 @@ import org.w3c.dom.Text;
 import org.xml.sax.SAXException;
 
 public class FileIO {
-
-    //xml and dombuilder data
     private DocumentBuilder schedbuilder;
     private DocumentBuilder userbuilder;
     private Document userDoc;
-    private Document scheduleDoc;
 
     private static final String ver = "1.0";
 
-    /**
-     * place-holder.
-     */
     FileIO() {
-        //ttList = new ArrayList<TimeTable>();
     }
-
 
     /**
      * reads timetabledata from xml-file
      *
-     * @param ttList
-     * @throws ParserConfigurationException
-     * @throws ParserConfigurationException
-     * @throws IOException
-     * @throws SAXException
-     * @throws Throwable
-     * @throws SAXException
+     * @param ttList list of TimeTabble objects
+     * @throws ParserConfigurationException fail
+     * @throws IOException fail
+     * @throws SAXException fail
      */
-
-
-    protected ArrayList<TimeTable> readTimeTable(ArrayList<TimeTable> ttList) throws ParserConfigurationException, SAXException, IOException {
+    ArrayList<TimeTable> readTimeTable(ArrayList<TimeTable> ttList) throws ParserConfigurationException, SAXException, IOException {
         Element root;
         NodeList list;
 
@@ -86,9 +74,9 @@ public class FileIO {
             DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
             this.schedbuilder = factory.newDocumentBuilder();
 
-            this.scheduleDoc = this.schedbuilder.parse("./schedule.xml");
+            Document scheduleDoc = this.schedbuilder.parse("schedule.xml");
 
-            root = this.scheduleDoc.getDocumentElement();
+            root = scheduleDoc.getDocumentElement();
             list = root.getElementsByTagName("timetable");
 
             if (list != null && list.getLength() > 0) {
@@ -97,10 +85,9 @@ public class FileIO {
                     TimeTable t = getTimeTable(el);
                     ttList.add(t);
                 }
+                System.out.println("schedule.xml: " + list.getLength());
             }
-            System.out.println("schedule.xml: " + list.getLength());
         }
-
         return ttList;
     }
 
@@ -108,17 +95,12 @@ public class FileIO {
     /**
      * reads userdata from xml-file
      *
-     * @param userList
-     * @throws ParserConfigurationException
-     * @throws ParserConfigurationException
-     * @throws IOException
-     * @throws SAXException
-     * @throws Throwable
-     * @throws SAXException
+     * @param userList list of User objects
+     * @throws ParserConfigurationException fail
+     * @throws IOException fail
+     * @throws SAXException fail
      */
-
-
-    protected ArrayList<User> readUserList(ArrayList<User> userList, ArrayList<TimeTable> ttList) throws ParserConfigurationException, SAXException, IOException {
+    ArrayList<User> readUserList(ArrayList<User> userList, ArrayList<TimeTable> ttList) throws ParserConfigurationException, SAXException, IOException {
         Element root;
         NodeList list;
 
@@ -137,11 +119,9 @@ public class FileIO {
                     User u = getUser(el, ttList);
                     userList.add(u);
                 }
+                System.out.println("userList.xml: " + list.getLength());
             }
-            System.out.println("userList.xml: " + list.getLength());
         }
-
-        this.userbuilder = null;
         return userList;
     }
 
@@ -149,7 +129,6 @@ public class FileIO {
      * take an user element and read the values in, create
      * an User object and return it
      */
-
     private User getUser(Element userEl, ArrayList<TimeTable> ttList) {
         NodeList almIds;
         String name = getTextValue(userEl, "name");
@@ -163,10 +142,10 @@ public class FileIO {
 
         System.out.println("scheduleId found on userlist: " + scheduleId);
 
-        for (int i = 0; i < ttList.size(); i++) {
-            if (scheduleId.equals(ttList.get(i).getId())) {
-                System.out.println("scheduleId found on schedulelist: " + ttList.get(i).getId());
-                sched = ttList.get(i);
+        for (TimeTable timeTable : ttList) {
+            if (scheduleId.equals(timeTable.getId())) {
+                System.out.println("scheduleId found on schedulelist: " + timeTable.getId());
+                sched = timeTable;
             }
         }
 
@@ -209,9 +188,9 @@ public class FileIO {
                 DaySchedule t = getDaySchedule(el);
                 sched.addDaySchedule(t);
             }
+            System.out.println("Day schedules found: " + dslist.getLength());
         }
 
-        System.out.println("Day schedules found: " + dslist.getLength());
         return sched;
     }
 
@@ -221,8 +200,8 @@ public class FileIO {
      */
 
     private DaySchedule getDaySchedule(Element dsEl) {
-        NodeList onlist = null;
-        NodeList offlist = null;
+        NodeList onlist;
+        NodeList offlist;
         String name;
         String onTime;
         String offTime;
@@ -255,9 +234,9 @@ public class FileIO {
                     }
                 }
             }
+            System.out.println(name + " schedules found: " + onlist.getLength());
         }
 
-        System.out.println(name + " schedules found: " + onlist.getLength());
         return ds;
     }
 
@@ -284,36 +263,21 @@ public class FileIO {
 
     private boolean getBooleanValue(Element ele, String tagName) {
         boolean boolVal = false;
-        String value = "false";
-
         NodeList nl = ele.getElementsByTagName(tagName);
 
         if (nl != null && nl.getLength() > 0) {
             Element el = (Element) nl.item(0);
-            value = el.getAttribute("value");
-
-            if (value.equals("true"))
+            if (el.getAttribute("value").equals("true"))
                 boolVal = true;
         }
         return boolVal;
     }
-
-
-    /**
-     * Method to save userList data
-     */
 
     public void saveUserList(ArrayList<User> list) {
         this.createUserDocument();
         this.createDOMTree(list);
         this.saveToFile(userDoc, "userlist.dtd", "./userList.xml");
     }
-
-
-    /**
-     * Using JAXP in implementation independent manner create a document object
-     * using which we create a xml tree in memory
-     */
 
     private void createUserDocument() {
         DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
@@ -328,21 +292,12 @@ public class FileIO {
 
     }
 
-    /**
-     * The real workhorse which creates the XML structure
-     */
-
     private void createDOMTree(ArrayList<User> list) {
-
         Element rootEle = userDoc.createElement("userList");
-        rootEle.setAttribute("version", this.ver);
-
+        rootEle.setAttribute("version", ver);
         userDoc.appendChild(rootEle);
-        Iterator it = list.iterator();
 
-        while (it.hasNext()) {
-            User u = (User) it.next();
-
+        for (User u : list) {
             Element userEle = createUserElement(u);
             rootEle.appendChild(userEle);
         }
@@ -400,13 +355,7 @@ public class FileIO {
         userEle.appendChild(stateEle);
 
         return userEle;
-
     }
-
-    /**
-     * This method uses Xerces specific classes
-     * prints the XML document to file.
-     */
 
     private void saveToFile(Document doc, String system, String path) {
         try {
@@ -416,14 +365,7 @@ public class FileIO {
             t.setOutputProperty(OutputKeys.INDENT, "yes");
 
             t.transform(new DOMSource(doc), new StreamResult(new FileOutputStream(path)));
-
-        } catch (TransformerConfigurationException problem) {
-            problem.printStackTrace();
-        } catch (TransformerFactoryConfigurationError problem) {
-            problem.printStackTrace();
-        } catch (FileNotFoundException problem) {
-            problem.printStackTrace();
-        } catch (TransformerException problem) {
+        } catch (TransformerFactoryConfigurationError | FileNotFoundException | TransformerException problem) {
             problem.printStackTrace();
         }
     }

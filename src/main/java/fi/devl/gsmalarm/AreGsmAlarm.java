@@ -8,7 +8,7 @@
  * @date 27.08.2009
  */
 
-package AreGsmAlarm;
+package fi.devl.gsmalarm;
 
 import java.io.IOException;
 

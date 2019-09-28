@@ -17,19 +17,19 @@
  * @date 31.05.2010
  */
 
-package AreGsmAlarm.servers;
+package fi.devl.gsmalarm.servers;
 
-import java.io.*;
-import java.net.*;
-import java.util.*;
+import fi.devl.gsmalarm.GsmGUI;
 
-import AreGsmAlarm.GsmGUI;
+import java.io.IOException;
+import java.net.DatagramPacket;
+import java.net.DatagramSocket;
 
 public class AlarmServerThread implements Runnable {
 
-    protected DatagramSocket socket = null;
-    protected boolean noError = true;
-    int alarmsReceived;
+    private DatagramSocket socket;
+    private boolean noError = true;
+    private int alarmsReceived;
     private GsmGUI gsmGUI;
 
     public AlarmServerThread(GsmGUI gsmGUI) throws IOException {
@@ -48,50 +48,42 @@ public class AlarmServerThread implements Runnable {
 
     public void run() {
         String data;
-        String alarm = "";
-        String id = "";
-        String[] tempBuf;
-        String temp = "";
+        String alarm;
+        String[] dataArray;
 
         int val = 0;
-        int i = 0;
 
         while (this.noError) {
             try {
                 byte[] buf = new byte[256];
 
-                // receive request
                 DatagramPacket packet = new DatagramPacket(buf, buf.length);
                 this.socket.receive(packet);
 
-                // build the alarm string
-                String dString = null;
-                dString = new Date().toString();
-
                 data = new String(buf);
 
-                for (i = 0; i < data.length() - 3; i++) {
-                    temp = data.substring(i, i + 3);
-                    if (temp.equals("EOF")) {
+                for (int i = 0; i < data.length() - 3; i++) {
+                    if (data.substring(i, i + 3).equals("EOF")) {
                         val = i;
                     }
                 }
 
                 alarm = data.substring(0, val);
-                tempBuf = alarm.split(":", 2);
+                dataArray = alarm.split(":", 2);
 
                 System.out.println(alarm);
-                System.out.println(tempBuf[0]);
-                System.out.println(tempBuf[1]);
+                System.out.println(dataArray[0]);
+                System.out.println(dataArray[1]);
 
                 this.alarmsReceived++;
                 this.gsmGUI.updatePanel1();
-                this.gsmGUI.sendSMS(tempBuf[1], tempBuf[0]);
+                this.gsmGUI.sendSMS(dataArray[1], dataArray[0]);
             } catch (IOException e) {
                 e.printStackTrace();
                 this.noError = false;
             }
         }
+
         this.socket.close();
     }
 }

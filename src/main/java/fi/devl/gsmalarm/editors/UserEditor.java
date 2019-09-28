@@ -20,7 +20,7 @@
  * @date 22.10.2009
  */
 
-package AreGsmAlarm.editors;
+package fi.devl.gsmalarm.editors;
 
 import java.awt.BorderLayout;
 import java.awt.Color;
@@ -43,34 +43,24 @@ import javax.swing.JSeparator;
 import javax.swing.JTextField;
 import javax.swing.WindowConstants;
 
-import AreGsmAlarm.GsmGUI;
-import AreGsmAlarm.TimeTable;
-import AreGsmAlarm.User;
+import fi.devl.gsmalarm.GsmGUI;
+import fi.devl.gsmalarm.domain.TimeTable;
+import fi.devl.gsmalarm.domain.User;
 
 import java.util.ArrayList;
 
 public class UserEditor extends JFrame implements ActionListener, WindowListener {
-    private String otsikko;
     private int numOfUsers;
     private int selectedUser = 0;
     private int selectedSchedule = 0;
     private int selectedState = 0;
 
-    private ImageIcon logo;
-
     private String[] nimet;
-    private String[] ajat;
-    private String[] tila;
     private ArrayList<User> userList;
     private ArrayList<TimeTable> ttList;
 
-    private JButton addUser;
     private JButton removeUser;
     private JButton saveData;
-
-    private JPanel logoPanel;
-    private JPanel dataPanel;
-    private JLabel logoLabel;
 
     private JComboBox nimiValikko;
     private JComboBox aikaValikko;
@@ -83,14 +73,11 @@ public class UserEditor extends JFrame implements ActionListener, WindowListener
     private GsmGUI gui;
 
     public UserEditor(String otsikko, ArrayList<User> list, ArrayList<TimeTable> tt, GsmGUI gui) {
-
-        // basic setup
-        this.otsikko = otsikko;
         this.userList = list;
         this.ttList = tt;
         this.gui = gui;
 
-        setTitle(this.otsikko);
+        setTitle(otsikko);
         setSize(640, 480);
         setBackground(Color.white);
         setResizable(false);
@@ -99,50 +86,49 @@ public class UserEditor extends JFrame implements ActionListener, WindowListener
         addWindowListener(this);
 
         // logo on top
-        this.logoPanel = new JPanel();
-        this.logoPanel.setLayout(new GridBagLayout());
-        this.logo = gui.createImageIcon("images/bg.png");
-        this.logoLabel = new JLabel();
-        this.logoLabel.setIcon(this.logo);
-        this.logoPanel.add(this.logoLabel);
+        JPanel logoPanel = new JPanel();
+        logoPanel.setLayout(new GridBagLayout());
+        ImageIcon logo = gui.createImageIcon("images/bg.png");
+        JLabel logoLabel = new JLabel();
+        logoLabel.setIcon(logo);
+        logoPanel.add(logoLabel);
 
         // input-datahandling
         this.numOfUsers = this.userList.size();
         this.nimet = new String[this.numOfUsers];
 
-        this.ajat = new String[this.ttList.size()];
+        String[] ajat = new String[this.ttList.size()];
 
         for (int i = 0; i < this.numOfUsers; i++) {
             this.nimet[i] = this.userList.get(i).getName();
         }
 
         for (int i = 0; i < this.ttList.size(); i++) {
-            this.ajat[i] = this.ttList.get(i).getName();
+            ajat[i] = this.ttList.get(i).getName();
         }
 
-        this.tila = new String[2];
-        this.tila[0] = "Ei";
-        this.tila[1] = "Kyllä";
+        String[] tila = new String[2];
+        tila[0] = "Ei";
+        tila[1] = "Kyllä";
 
         // comboboxes and anction listeners
         this.nimiValikko = new JComboBox(this.nimet);
         this.nimiValikko.addActionListener(this);
 
-        this.aikaValikko = new JComboBox(this.ajat);
+        this.aikaValikko = new JComboBox(ajat);
         this.aikaValikko.addActionListener(this);
 
-        this.tilaValikko = new JComboBox(this.tila);
+        this.tilaValikko = new JComboBox(tila);
         this.tilaValikko.addActionListener(this);
 
         // userdata and buttons
-        dataPanel = new JPanel();
+        JPanel dataPanel = new JPanel();
         dataPanel.setLayout(new GridBagLayout());
         dataPanel.setBackground(Color.white);
         GridBagConstraints c = new GridBagConstraints();
         c.fill = GridBagConstraints.BOTH;
 
         JLabel nimet = new JLabel(" Valitse käyttäjä ");
-        JLabel ajat = new JLabel(" Valitse aikataulu ");
 
         JLabel nimi = new JLabel(" Nimi ");
         JLabel puhelin = new JLabel(" Puhelinnumero ");
@@ -188,7 +174,7 @@ public class UserEditor extends JFrame implements ActionListener, WindowListener
             this.kohdeData.setEditable(false);
         }
 
-        this.addUser = new JButton("Lisää käyttäjä");
+        JButton addUser = new JButton("Lisää käyttäjä");
         this.removeUser = new JButton("Poista käyttäjä");
         this.saveData = new JButton("Tallenna muutokset");
 
@@ -197,11 +183,11 @@ public class UserEditor extends JFrame implements ActionListener, WindowListener
             this.saveData.setEnabled(false);
         }
 
-        this.addUser.addActionListener(this);
+        addUser.addActionListener(this);
         this.removeUser.addActionListener(this);
         this.saveData.addActionListener(this);
 
-        this.addUser.setActionCommand("add");
+        addUser.setActionCommand("add");
         this.removeUser.setActionCommand("remove");
         this.saveData.setActionCommand("save");
         this.nimiValikko.setActionCommand("userSelect");
@@ -415,9 +401,9 @@ public class UserEditor extends JFrame implements ActionListener, WindowListener
             this.userList.get(selectedUser).changeNumber(this.puhelinData.getText());
             this.userList.get(selectedUser).changeId(this.kohdeData.getText());
 
-            for (int i = 0; i < ttList.size(); i++) {
-                if (this.aikaValikko.getItemAt(this.selectedSchedule).equals(this.ttList.get(i).getName()))
-                    this.userList.get(this.selectedUser).changeSchedule(this.ttList.get(i));
+            for (TimeTable timeTable : ttList) {
+                if (this.aikaValikko.getItemAt(this.selectedSchedule).equals(timeTable.getName()))
+                    this.userList.get(this.selectedUser).changeSchedule(timeTable);
             }
             //this.userList.get(selectedUser).changeSchedule(ttList.get(selectedSchedule));
 
@@ -498,7 +484,7 @@ public class UserEditor extends JFrame implements ActionListener, WindowListener
         }
     }
 
-    public void updateFieldData() {
+    private void updateFieldData() {
         String temp;
         if (this.userList.size() > 0 && selectedUser < this.userList.size() && selectedUser >= 0) {
             this.nimiData.setText(this.userList.get(selectedUser).getName());

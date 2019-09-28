@@ -22,7 +22,7 @@
  * @date 4.2.2010
  */
 
-package AreGsmAlarm.editors;
+package fi.devl.gsmalarm.editors;
 
 import java.awt.BorderLayout;
 import java.awt.Color;
@@ -44,8 +44,8 @@ import javax.swing.JSeparator;
 import javax.swing.JTextField;
 import javax.swing.WindowConstants;
 
-import AreGsmAlarm.GsmGUI;
-import AreGsmAlarm.servers.ComServerThread;
+import fi.devl.gsmalarm.GsmGUI;
+import fi.devl.gsmalarm.servers.ComServerThread;
 
 import java.text.DecimalFormat;
 import java.util.ArrayList;
@@ -325,7 +325,7 @@ public class ComEditor extends JFrame implements ActionListener, WindowListener 
             public void run() {
                 parent.updateFields();
             }
-        }
+        };
 
         final ScheduledFuture<?> dataHandle = scheduledDataPoll.scheduleAtFixedRate(updateData, 10, 10, SECONDS);
     }

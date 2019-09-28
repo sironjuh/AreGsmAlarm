@@ -1,4 +1,4 @@
-package AreGsmAlarm;
+package fi.devl.gsmalarm.domain;
 
 public class Viestikeskus {
 

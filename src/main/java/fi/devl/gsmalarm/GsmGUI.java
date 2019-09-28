@@ -27,7 +27,7 @@
  * @date 17.06.2010
  */
 
-package AreGsmAlarm;
+package fi.devl.gsmalarm;
 
 import java.awt.BorderLayout;
 import java.awt.Color;
@@ -68,17 +68,16 @@ import javax.swing.event.TableModelListener;
 import javax.swing.table.AbstractTableModel;
 import javax.xml.parsers.ParserConfigurationException;
 
+import fi.devl.gsmalarm.domain.TimeTable;
+import fi.devl.gsmalarm.domain.User;
 import org.xml.sax.SAXException;
 
-import AreGsmAlarm.editors.ComEditor;
-import AreGsmAlarm.editors.UserEditor;
-import AreGsmAlarm.editors.ScheduleEditor;
+import fi.devl.gsmalarm.editors.ComEditor;
+import fi.devl.gsmalarm.editors.UserEditor;
+import fi.devl.gsmalarm.editors.ScheduleEditor;
 
-import AreGsmAlarm.servers.AlarmServerThread;
-import AreGsmAlarm.servers.ComServerThread;
-
-//import com.sun.java.swing.plaf.nimbus.NimbusLookAndFeel;
-
+import fi.devl.gsmalarm.servers.AlarmServerThread;
+import fi.devl.gsmalarm.servers.ComServerThread;
 
 public class GsmGUI extends JFrame implements ActionListener, TableModelListener, WindowListener {
 
@@ -96,12 +95,9 @@ public class GsmGUI extends JFrame implements ActionListener, TableModelListener
     private JComponent panel3;
 
     // buttons (tab 1)
-    //private JButton enableAlarms;
-    //private JButton disableAlarms;
     private JButton changeStateButton;
 
     // buttons (tab 2)
-    // non-private as need access to these inside package
     public JButton userEdit;
     public JButton scheduleEdit;
     public JButton messageCentral;

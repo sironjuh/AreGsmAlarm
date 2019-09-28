@@ -18,7 +18,9 @@
  * @date 26.05.2010
  */
 
-package AreGsmAlarm;
+package fi.devl.gsmalarm.domain;
+
+import fi.devl.gsmalarm.domain.TimeTable;
 
 import java.util.ArrayList;
 

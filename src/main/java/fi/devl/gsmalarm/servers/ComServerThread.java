@@ -26,7 +26,7 @@
  * @date 4.2.2010
  */
 
-package AreGsmAlarm.servers;
+package fi.devl.gsmalarm.servers;
 
 import gnu.io.CommPort;
 import gnu.io.CommPortIdentifier;
@@ -53,13 +53,12 @@ public class ComServerThread implements Runnable {
     private String signal = "Ei signaalia";
     private String operator = "Ei operaattoria";
 
-    LinkedBlockingQueue<String> outLinkedBlockingQueue;
-    LinkedBlockingQueue<String> inLinkedBlockingQueue;
+    private LinkedBlockingQueue<String> outLinkedBlockingQueue;
+    private LinkedBlockingQueue<String> inLinkedBlockingQueue;
 
     public ComServerThread() throws IOException {
-        this.outLinkedBlockingQueue = new LinkedBlockingQueue<String>();
-        this.inLinkedBlockingQueue = new LinkedBlockingQueue<String>();
-        //this.alive = Boolean.TRUE;
+        this.outLinkedBlockingQueue = new LinkedBlockingQueue<>();
+        this.inLinkedBlockingQueue = new LinkedBlockingQueue<>();
     }
 
     public void connect(String portName) throws Exception {
@@ -180,12 +179,12 @@ public class ComServerThread implements Runnable {
 
     public String parseScandics(String input) {
         input = input.replace('_', (char) 0x11);
-        input = input.replace('�', (char) 0x0f);
-        input = input.replace('�', (char) 0x7b);
-        input = input.replace('�', (char) 0x7c);
-        input = input.replace('�', (char) 0x5b);
-        input = input.replace('�', (char) 0x5c);
-        input = input.replace('�', (char) 0x0e);
+        input = input.replace('ä', (char) 0x0f);
+        input = input.replace('Ä', (char) 0x7b);
+        input = input.replace('ö', (char) 0x7c);
+        input = input.replace('Ö', (char) 0x5b);
+        input = input.replace('å', (char) 0x5c);
+        input = input.replace('Å', (char) 0x0e);
 
         return input;
     }
